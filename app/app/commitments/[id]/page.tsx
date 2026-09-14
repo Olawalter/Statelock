@@ -152,9 +152,9 @@ function Detail({ c }: { c: Condition }) {
         <LifecycleRail status={c.status} />
       </header>
 
-      <div className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+      <div className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         {/* ── ON-CHAIN ─────────────────────────────────────────────── */}
-        <div className="grid content-start gap-6">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-6">
           <div className="flex items-center gap-3">
             <span className="size-2 bg-signal" aria-hidden="true" />
             <h2 className="font-mono text-xs tracking-[0.2em] text-text">ON-CHAIN</h2>
@@ -288,7 +288,7 @@ function Detail({ c }: { c: Condition }) {
         </div>
 
         {/* ── EXTERNAL EVIDENCE ────────────────────────────────────── */}
-        <div className="grid content-start gap-6">
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] content-start gap-6">
           <div className="flex items-center gap-3">
             <span className="size-2 border border-dim" aria-hidden="true" />
             <h2 className="font-mono text-xs tracking-[0.2em] text-text">EXTERNAL EVIDENCE</h2>

@@ -28,7 +28,7 @@ function fakeClient(statuses: string[], leader: { execution_result: string; resu
   } as unknown as GenLayerClient;
 }
 
-async function run(client: GenLayerClient, reconciled: () => Promise<boolean>) {
+async function run(client: GenLayerClient, reconciled: () => Promise<boolean | string>) {
   const seen: TxState[] = [];
   const final = await runWrite({
     config,

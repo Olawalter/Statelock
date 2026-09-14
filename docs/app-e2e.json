@@ -1,0 +1,323 @@
+{
+  "what": "Live E2E through the STATELOCK web app (app/) against the deployment of record, driven in a browser with an injected EIP-6963 test wallet (throwaway key, faucet-funded)",
+  "network": "GenLayer StudioNet",
+  "chain_id": 61999,
+  "contract": "0x9e4Ae09e8584a79bdbFACf7CB2Dad05a51bACd9d",
+  "creator_wallet": "0x14a95642Bcb2B43ac0aF4EDC4865f01c50AFE61B",
+  "beneficiary": "0x7f7dC7d0A133fF6eEAbb243552C296A5d27b6Af5",
+  "transactions": [
+    {
+      "method": "create_condition",
+      "args": [
+        "genlayer-js publishes version 1.1.8 as a public release"
+      ],
+      "hash": "0x1a6254901c9d2da75d097d4136b7ec1b5151d4593747048953111ee54009b3b3",
+      "from": "0x14a95642Bcb2B43ac0aF4EDC4865f01c50AFE61B",
+      "created_at": "2026-09-14T22:31:20.700276+00:00",
+      "value": 0,
+      "status": "FINALIZED",
+      "consensus": null,
+      "execution": "SUCCESS",
+      "votes": [
+        "agree",
+        "agree",
+        "agree",
+        "idle",
+        "idle"
+      ]
+    },
+    {
+      "method": "fund_condition",
+      "args": [
+        "SL-000001"
+      ],
+      "hash": "0x68381a6c45ce3a9101247a8633a657b6cf5286185b829797073060b00e044c7e",
+      "from": "0x14a95642Bcb2B43ac0aF4EDC4865f01c50AFE61B",
+      "created_at": "2026-09-14T22:32:36.645971+00:00",
+      "value": 10000000000000000,
+      "status": "FINALIZED",
+      "consensus": null,
+      "execution": "SUCCESS",
+      "votes": [
+        "agree",
+        "agree",
+        "agree",
+        "idle",
+        "idle"
+      ]
+    },
+    {
+      "method": "arm_condition",
+      "args": [
+        "SL-000001"
+      ],
+      "hash": "0x263718de6fd32c24997bf73edf8141e3738587e8a0c217f93d404f54a56451c7",
+      "from": "0x14a95642Bcb2B43ac0aF4EDC4865f01c50AFE61B",
+      "created_at": "2026-09-14T22:34:35.786768+00:00",
+      "value": 0,
+      "status": "FINALIZED",
+      "consensus": null,
+      "execution": "SUCCESS",
+      "votes": [
+        "agree",
+        "agree",
+        "agree",
+        "idle",
+        "idle"
+      ]
+    },
+    {
+      "method": "observe_condition",
+      "args": [
+        "SL-000001"
+      ],
+      "hash": "0xd2abe6bcd77423c7d0f3c8af95c7bf633dbed9674cbd67969d2e95f673ead7db",
+      "from": "0x14a95642Bcb2B43ac0aF4EDC4865f01c50AFE61B",
+      "created_at": "2026-09-14T22:38:38.979786+00:00",
+      "value": 0,
+      "status": "FINALIZED",
+      "consensus": null,
+      "execution": "SUCCESS",
+      "votes": [
+        "agree",
+        "agree",
+        "agree",
+        "idle",
+        "idle"
+      ]
+    },
+    {
+      "method": "finalize_condition",
+      "args": [
+        "SL-000001"
+      ],
+      "hash": "0x3746db6941f4eb526fad123506824869bfb973290e261d68b87a3a58649a7852",
+      "from": "0x14a95642Bcb2B43ac0aF4EDC4865f01c50AFE61B",
+      "created_at": "2026-09-14T22:48:57.483869+00:00",
+      "value": 0,
+      "status": "FINALIZED",
+      "consensus": null,
+      "execution": "SUCCESS",
+      "votes": [
+        "agree",
+        "agree",
+        "agree",
+        "idle",
+        "idle"
+      ]
+    },
+    {
+      "method": "settle_condition",
+      "args": [
+        "SL-000001"
+      ],
+      "hash": "0x7979b74faaa13d3e593582f3f68f2281145080c329473bfbef31513693b49be8",
+      "from": "0x14a95642Bcb2B43ac0aF4EDC4865f01c50AFE61B",
+      "created_at": "2026-09-14T22:50:20.076081+00:00",
+      "value": 0,
+      "status": "FINALIZED",
+      "consensus": null,
+      "execution": "SUCCESS",
+      "votes": [
+        "agree",
+        "agree",
+        "agree",
+        "idle",
+        "idle"
+      ]
+    },
+    {
+      "method": null,
+      "args": [],
+      "hash": "0x81c0222c9ba553917b725de705e016a4a4e5853776be9ab249f29ece5176dd46",
+      "from": "0x9e4Ae09e8584a79bdbFACf7CB2Dad05a51bACd9d",
+      "created_at": "2026-09-14T22:50:53.304000+00:00",
+      "value": 10000000000000000,
+      "status": "FINALIZED",
+      "consensus": null,
+      "execution": null,
+      "votes": []
+    }
+  ],
+  "condition": {
+    "accepted_at": 1789425518,
+    "armed_at": 1789425275,
+    "beneficiary": "0x7f7dC7d0A133fF6eEAbb243552C296A5d27b6Af5",
+    "bounty_deposited": 0,
+    "bounty_terms": 10000000000000000,
+    "cancelled_at": 0,
+    "condition_id": "SL-000001",
+    "condition_text": "genlayer-js publishes version 1.1.8 as a public release",
+    "consequence": {
+      "NOT_SATISFIED": "CREATOR",
+      "SATISFIED": "BENEFICIARY",
+      "UNDETERMINED": "CREATOR"
+    },
+    "created_at": 1789425080,
+    "creator": "0x14a95642Bcb2B43ac0aF4EDC4865f01c50AFE61B",
+    "deadline": 1789511340,
+    "early_observations": 1,
+    "early_observations_allowed": 4,
+    "finalizable_at": 1789426118,
+    "finalized_at": 1789426137,
+    "funded_at": 1789425156,
+    "last_observed_at": 1789425518,
+    "locked": false,
+    "observation_closes": 1790116140,
+    "observation_count": 1,
+    "observation_start": 1789425480,
+    "policy_hash": "sha256:f6c67edb466cd5c20bfb144da10ad6599cfa1d0fa286e68d3e145a08cdaff461",
+    "result_observation": 1,
+    "result_reason": "REQUIRED_FACTS_CONFIRMED",
+    "result_temporal": "BEFORE_DEADLINE",
+    "result_verdict": "SATISFIED",
+    "settled_amount": 10000000000000000,
+    "settled_at": 1789426220,
+    "settled_to": "0x7f7dC7d0A133fF6eEAbb243552C296A5d27b6Af5",
+    "status": "SETTLED",
+    "terminal": true,
+    "terms_hash": "sha256:9d0d0072548c99189ed4403c0bf77d652531fc1072b10c0578d872325f93ba08"
+  },
+  "policy": {
+    "failure_behavior": "UNDETERMINED_REFUNDS_CREATOR",
+    "instructions": "A draft or pre-release does not count as publicly available.",
+    "policy_hash": "sha256:f6c67edb466cd5c20bfb144da10ad6599cfa1d0fa286e68d3e145a08cdaff461",
+    "require_independent_sources": false,
+    "required_facts": [
+      {
+        "description": "The version number of this published release",
+        "expected": "1.1.8",
+        "name": "released_version"
+      },
+      {
+        "description": "The release is published and publicly available: not a draft and not a pre-release",
+        "expected": "",
+        "name": "public_release"
+      }
+    ],
+    "sources": [
+      {
+        "host": "api.github.com",
+        "id": "S1",
+        "kind": "OFFICIAL_REPOSITORY",
+        "label": "genlayer-js GitHub release record",
+        "url": "https://api.github.com/repos/genlayerlabs/genlayer-js/releases/tags/v1.1.8"
+      },
+      {
+        "host": "registry.npmjs.org",
+        "id": "S2",
+        "kind": "PUBLIC_REGISTRY",
+        "label": "npm registry version document",
+        "url": "https://registry.npmjs.org/genlayer-js/1.1.8"
+      }
+    ],
+    "temporal_rule": "EVENT_BY_DEADLINE"
+  },
+  "observations": [
+    {
+      "conclusive": true,
+      "facts": [
+        {
+          "independent": null,
+          "name": "released_version",
+          "status": "CONFIRMED",
+          "value": "1.1.8"
+        },
+        {
+          "independent": null,
+          "name": "public_release",
+          "status": "CONFIRMED",
+          "value": ""
+        }
+      ],
+      "index": 1,
+      "observed_at": 1789425518,
+      "phase": "WITHIN_WINDOW",
+      "reason_code": "REQUIRED_FACTS_CONFIRMED",
+      "sources_readable": [
+        "S1",
+        "S2"
+      ],
+      "temporal_result": "BEFORE_DEADLINE",
+      "verdict": "SATISFIED"
+    }
+  ],
+  "final_result": {
+    "accepted_at": 1789425518,
+    "condition_id": "SL-000001",
+    "destination": "0x7f7dC7d0A133fF6eEAbb243552C296A5d27b6Af5",
+    "final": true,
+    "finalizable_at": 1789426118,
+    "finalized_at": 1789426137,
+    "has_result": true,
+    "observation_index": 1,
+    "reason_code": "REQUIRED_FACTS_CONFIRMED",
+    "settled": true,
+    "settled_amount": 10000000000000000,
+    "settled_at": 1789426220,
+    "settled_to": "0x7f7dC7d0A133fF6eEAbb243552C296A5d27b6Af5",
+    "status": "SETTLED",
+    "temporal_result": "BEFORE_DEADLINE",
+    "verdict": "SATISFIED"
+  },
+  "balances_atto": {
+    "before_settlement": {
+      "beneficiary": 0,
+      "creator": 990000000000000000,
+      "contract": 10000000000000000
+    },
+    "after_settlement": {
+      "beneficiary": 10000000000000000,
+      "creator": 990000000000000000,
+      "contract": 0
+    },
+    "note": "before_settlement was read in the browser immediately before clicking Settle"
+  },
+  "protocol_info": {
+    "condition_count": 1,
+    "consequence": {
+      "NOT_SATISFIED": "CREATOR",
+      "SATISFIED": "BENEFICIARY",
+      "UNDETERMINED": "CREATOR"
+    },
+    "failure_behavior": "UNDETERMINED_REFUNDS_CREATOR",
+    "limits": {
+      "finality_delay_seconds": 600,
+      "max_condition_text": 500,
+      "max_early_observations": 4,
+      "max_excerpt_chars": 6000,
+      "max_expected": 80,
+      "max_fact_description": 240,
+      "max_fact_name": 40,
+      "max_facts": 6,
+      "max_horizon_seconds": 31622400,
+      "max_instructions": 1000,
+      "max_policy_json": 6000,
+      "max_response_bytes": 1000000,
+      "max_source_label": 80,
+      "max_sources": 4,
+      "max_url": 300,
+      "observation_grace_seconds": 604800
+    },
+    "outcomes": [
+      "NOT_SATISFIED",
+      "SATISFIED",
+      "UNDETERMINED"
+    ],
+    "returned_deposit_count": 0,
+    "source_kinds": [
+      "OFFICIAL_ANNOUNCEMENT",
+      "OFFICIAL_API",
+      "OFFICIAL_DOCUMENTATION",
+      "OFFICIAL_REPOSITORY",
+      "OTHER",
+      "PUBLIC_REGISTRY"
+    ],
+    "temporal_rules": [
+      "EVENT_BY_DEADLINE"
+    ],
+    "time_source": "GenLayer transaction datetime (UTC Unix seconds)",
+    "total_locked": 0,
+    "version": "STATELOCK-1.0.0"
+  }
+}

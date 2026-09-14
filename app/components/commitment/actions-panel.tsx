@@ -7,7 +7,7 @@ import { TxTracker } from "@/components/settlement/tx-tracker";
 import { Button } from "@/components/ui/button";
 import { useDeployment, useNetwork } from "@/components/wallet/network-status";
 import { fundingOutcome, reads, verbCall, type Condition, type Verb } from "@/lib/contracts/statelock";
-import type { TxState } from "@/lib/genlayer/tx";
+import { initialTx, type TxState } from "@/lib/genlayer/tx";
 import { formatDuration, formatGen, formatTime, sameAddress } from "@/lib/present";
 import { useStatelock } from "@/providers/app-providers";
 import { useTx } from "@/providers/tx-provider";
@@ -136,12 +136,13 @@ export function ActionsPanel({ c }: { c: Condition }) {
   const { address } = useConnection();
   const net = useNetwork();
   const deployment = useDeployment();
-  const { send } = useTx();
+  const { send, records } = useTx();
   const now = useNow();
-  const [active, setActive] = useState<{ verb: Verb; effect: string; state: TxState } | null>(null);
+  const [active, setActive] = useState<{ verb: Verb; effect: string; id: number | null } | null>(null);
+  const live: TxState | null = active ? (records.find((r) => r.id === active.id)?.state ?? initialTx) : null;
 
   const actions = actionsFor(c, address, now);
-  const busy = active !== null && active.state.stage !== "FAILED" && active.state.stage !== "CONTRACT_STATE_UPDATED";
+  const busy = live !== null && live.stage !== "FAILED" && live.stage !== "CONTRACT_STATE_UPDATED";
   const walletProblem = !address
     ? "Connect a wallet to send a transaction."
     : !net.correct
@@ -151,7 +152,7 @@ export function ActionsPanel({ c }: { c: Condition }) {
         : null;
 
   async function run(a: Action) {
-    setActive({ verb: a.verb, effect: a.effect, state: { stage: "READY", reached: "READY", finality: "none" } });
+    setActive({ verb: a.verb, effect: a.effect, id: null });
     let reconciled: () => Promise<boolean | string> = async () =>
       a.reconciled(await reads.condition(client, config, c.condition_id));
     if (a.verb === "fund" && address) {
@@ -161,13 +162,13 @@ export function ActionsPanel({ c }: { c: Condition }) {
         /* fall back to the status check */
       }
     }
-    const record = await send({
+    await send({
       title: `${a.label} · ${c.condition_id}`,
       effect: a.effect,
       ...verbCall(a.verb, c.condition_id, c.bounty_terms),
       reconciled,
+      onRecord: (id) => setActive({ verb: a.verb, effect: a.effect, id }),
     });
-    setActive({ verb: a.verb, effect: a.effect, state: record.state });
   }
 
   if (c.terminal) {
@@ -202,7 +203,7 @@ export function ActionsPanel({ c }: { c: Condition }) {
       </ul>
       {active ? (
         <div className="border border-line bg-ink p-4">
-          <TxTracker state={active.state} effect={active.effect} />
+          <TxTracker state={live ?? initialTx} effect={active.effect} />
         </div>
       ) : null}
     </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from "react";
 import type { EIP1193Provider } from "viem";
 import { useConnection } from "wagmi";
 
@@ -28,6 +28,8 @@ export type WriteRequest = {
   args: (string | number | bigint)[];
   value: bigint;
   reconciled: () => Promise<boolean | string>;
+  /** Called with the record id as soon as the write starts, so a panel can follow it live. */
+  onRecord?: (id: number) => void;
 };
 
 type TxContextValue = {
@@ -59,7 +61,8 @@ export function TxProvider({ children }: { children: ReactNode }) {
     async (req: WriteRequest): Promise<TxRecord> => {
       const id = nextId.current++;
       let record: TxRecord = { id, title: req.title, effect: req.effect, state: initialTx, dismissed: false };
-      setRecords((rs) => [...rs.slice(-4), record]);
+      setRecords((rs) => [...rs.slice(-9), record]);
+      req.onRecord?.(id);
       const failWith = (message: string) => {
         record = { ...record, state: { ...initialTx, stage: "FAILED", message } };
         update(id, record);
@@ -99,6 +102,15 @@ export function TxProvider({ children }: { children: ReactNode }) {
   );
 
   const dismiss = useCallback((id: number) => update(id, { dismissed: true }), [update]);
+
+  // A write whose effect the contract already shows leaves the dock on its own, so the dock never
+  // sits over the next action; the panel that sent it keeps following its finality. Failures stay.
+  useEffect(() => {
+    const done = records.filter((r) => !r.dismissed && r.state.stage === "CONTRACT_STATE_UPDATED");
+    if (!done.length) return;
+    const t = setTimeout(() => done.forEach((r) => dismiss(r.id)), 12_000);
+    return () => clearTimeout(t);
+  }, [records, dismiss]);
 
   return (
     <TxContext.Provider value={{ records, send, dismiss }}>

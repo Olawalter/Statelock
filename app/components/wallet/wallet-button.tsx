@@ -39,14 +39,18 @@ export function WalletButton() {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)} disabled={status === "connecting" || status === "reconnecting"}>
+      <Button
+        aria-label="Connect wallet"
+        onClick={() => setOpen(true)}
+        disabled={status === "connecting" || status === "reconnecting"}
+      >
         <Wallet data-icon="inline-start" />
         {status === "connecting" || status === "reconnecting" ? (
-          "Connecting…"
+          <span className="hidden min-[360px]:inline">Connecting…</span>
         ) : (
-          <>
+          <span className="hidden min-[360px]:inline">
             Connect<span className="hidden sm:inline">&nbsp;wallet</span>
-          </>
+          </span>
         )}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>

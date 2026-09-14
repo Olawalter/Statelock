@@ -2,7 +2,7 @@
 
 import { AlertTriangle, ArrowLeft, ArrowRight, Lock, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useConnection } from "wagmi";
 
 import { Field, SelectInput, TextArea, TextInput } from "@/components/commitment/fields";
@@ -73,7 +73,17 @@ export default function CreatePage() {
   const [created, setCreated] = useState<Condition | null>(null);
   const [funded, setFunded] = useState(false);
   const [armed, setArmed] = useState(false);
-  const [tx, setTx] = useState<{ label: string; state: TxState } | null>(null);
+  const [txRef, setTxRef] = useState<{ label: string; id: number | null } | null>(null);
+  const { records } = useTx();
+  const tx: { label: string; state: TxState } | null = txRef
+    ? { label: txRef.label, state: records.find((r) => r.id === txRef.id)?.state ?? initialTx }
+    : null;
+  // the contract checks times against its own clock; re-check here as time passes, not only on edits
+  const [clock, setClock] = useState(nowSec);
+  useEffect(() => {
+    const t = setInterval(() => setClock(nowSec()), 15_000);
+    return () => clearInterval(t);
+  }, []);
 
   const policy: PolicyInput = { sources, facts, requireIndependentSources: requireIndependent, instructions };
   const observationStart = utcInputToUnix(startInput);
@@ -85,14 +95,16 @@ export default function CreatePage() {
     () => [
       firstIssue(conditionStep.safeParse({ conditionText })),
       firstIssue(policyStep.safeParse(policy)) ?? (json.length > LIMITS.policyJson ? "The policy is too long. Shorten descriptions or remove a source." : null),
-      firstIssue(timeStep.safeParse({ observationStart, deadline, now: nowSec() })),
+      firstIssue(timeStep.safeParse({ observationStart, deadline, now: clock })),
       firstIssue(consequenceStep.safeParse({ bounty, beneficiary })),
       null,
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [conditionText, json, observationStart, deadline, bounty, beneficiary],
+    [conditionText, json, observationStart, deadline, bounty, beneficiary, clock],
   );
 
+  const blockingStep = issues.findIndex(Boolean);
+  const blocking = blockingStep >= 0 ? { step: blockingStep, message: issues[blockingStep] as string } : null;
   const locked = created !== null; // terms are on chain: the form is read-only from here
   const canTransact = net.correct && deployment.data?.ok === true;
   const busy = tx !== null && tx.state.stage !== "FAILED" && tx.state.stage !== "CONTRACT_STATE_UPDATED";
@@ -116,8 +128,8 @@ export default function CreatePage() {
       beneficiary: beneficiary.trim(),
     });
     let found: Condition | null = null;
-    setTx({ label: "Create", state: initialTx });
-    const record = await send({
+    setTxRef({ label: "Create", id: null });
+    await send({
       title: "Create commitment",
       effect: "The commitment's terms and policy are recorded on-chain as a draft.",
       ...call,
@@ -127,14 +139,14 @@ export default function CreatePage() {
         if (found) setCreated(found);
         return found !== null;
       },
+      onRecord: (id) => setTxRef({ label: "Create", id }),
     });
-    setTx({ label: "Create", state: record.state });
   }
 
   async function doFund() {
     if (!created || !address) return;
     const id = created.condition_id;
-    setTx({ label: "Fund", state: initialTx });
+    setTxRef({ label: "Fund", id: null });
     const reconciled = await fundingOutcome(client, config, id, address).catch(
       () => async () => (await reads.condition(client, config, id)).status === "FUNDED",
     );
@@ -143,23 +155,23 @@ export default function CreatePage() {
       effect: `${formatGen(created.bounty_terms)} is deposited and held by the contract.`,
       ...verbCall("fund", id, created.bounty_terms),
       reconciled,
+      onRecord: (rid) => setTxRef({ label: "Fund", id: rid }),
     });
     if (record.state.stage === "CONTRACT_STATE_UPDATED") setFunded(true);
-    setTx({ label: "Fund", state: record.state });
   }
 
   async function doArm() {
     if (!created) return;
     const id = created.condition_id;
-    setTx({ label: "Arm", state: initialTx });
+    setTxRef({ label: "Arm", id: null });
     const record = await send({
       title: `Arm ${id}`,
       effect: "The commitment is armed. Its terms are frozen and the bounty is locked until settlement.",
       ...verbCall("arm", id),
       reconciled: async () => (await reads.condition(client, config, id)).status === "ARMED",
+      onRecord: (rid) => setTxRef({ label: "Arm", id: rid }),
     });
     if (record.state.stage === "CONTRACT_STATE_UPDATED") setArmed(true);
-    setTx({ label: "Arm", state: record.state });
   }
 
   const shownIssue = attempted ? issues[step] : null;
@@ -476,6 +488,14 @@ export default function CreatePage() {
               {!address ? <p className="text-sm text-dim">Connect a wallet to create this commitment.</p> : null}
               {address && !canTransact ? (
                 <p className="text-sm text-maybe">Transactions are disabled until your wallet is on GenLayer StudioNet and the contract is verified.</p>
+              ) : null}
+              {!created && blocking ? (
+                <p role="alert" className="flex flex-wrap items-center gap-x-3 gap-y-1 border-l-2 border-maybe pl-3 text-sm">
+                  <span>{blocking.message}</span>
+                  <button type="button" className="text-signal underline-offset-4 hover:underline" onClick={() => setStep(blocking.step)}>
+                    Edit {STEPS[blocking.step].toLowerCase()}
+                  </button>
+                </p>
               ) : null}
 
               <ol className="grid gap-3 sm:grid-cols-3">
