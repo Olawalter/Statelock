@@ -133,6 +133,7 @@ MAX_RESPONSE_BYTES = 1_000_000     # a larger response is treated as unreadable
 MAX_EXCERPT_CHARS = 6000           # per source, what the model reads
 MAX_EARLY_OBSERVATIONS = 4         # observations at or before the deadline
 MAX_PAGE = 50
+MAX_ID_ECHO = 40                   # how much of an unknown condition id a returned-deposit record keeps
 
 HOUR = 3600
 DAY = 86400
@@ -622,6 +623,7 @@ class Statelock(gl.Contract):
     conditions_by_creator: TreeMap[str, DynArray[str]]
     observations: TreeMap[str, DynArray[str]]    # condition_id -> JSON observation records
     total_locked: u256                            # atto held across all conditions
+    returned_deposits: DynArray[str]              # JSON records of deposits sent straight back
 
     def __init__(self):
         self.version = "STATELOCK-1.0.0"
@@ -741,24 +743,58 @@ class Statelock(gl.Contract):
 
     # ═══ funding ════════════════════════════════════════════════════════════
 
-    @gl.public.write.payable
-    def fund_condition(self, condition_id: str) -> None:
-        """Deposit exactly the bounty terms. The deposited figure is the value
-        the chain moved with this transaction — never an argument."""
-        c = self._require(condition_id)
-        self._require_creator(c)
-        self._require_status(c, {S_DRAFT})
-        self._require_terms_intact(c)
-        sent = int(gl.message.value)
+    def _funding_problem(self, condition_id: str, sent: int):
+        """Why this deposit cannot fund this condition, or None."""
+        if condition_id not in self.conditions:
+            return f"unknown condition {str(condition_id)[:MAX_ID_ECHO]}"
+        c = self.conditions[condition_id]
+        if self._sender_key() != str(c.creator).lower():
+            return "only the creator may do this"
+        if c.status != S_DRAFT:
+            return f"illegal transition from {c.status}; expected one of ['DRAFT']"
+        if _sha256(c.policy_json) != c.policy_hash or self._terms_hash(c) != c.terms_hash:
+            return "terms commitment broken"
         required = int(c.bounty_terms)
         if sent != required:
-            raise gl.vm.UserError(
-                f"{ERROR_EXPECTED} funding must equal the bounty terms exactly: "
-                f"required {required}, received {sent}")
+            return (f"funding must equal the bounty terms exactly: "
+                    f"required {required}, received {sent}")
+        return None
+
+    @gl.public.write.payable
+    def fund_condition(self, condition_id: str) -> str:
+        """Deposit exactly the bounty terms. The deposited figure is the value
+        the chain moved with this transaction — never an argument.
+
+        A deposit that cannot be accepted is RETURNED, not refused. GenLayer
+        credits a transaction's value to the contract even when execution
+        fails (observed on StudioNet: `value_credited` on refused funding
+        transactions), and a refused transaction can change nothing — so a
+        refusal would strand the sender's GEN outside every ledger with no
+        path back. Instead the exact value goes straight back to the sender
+        in the same transaction, the reason is recorded, and the condition is
+        untouched. A call carrying no value has nothing to strand and is
+        refused as before."""
+        sent = int(gl.message.value)
+        problem = self._funding_problem(condition_id, sent)
+        if problem is not None:
+            if sent <= 0:
+                raise gl.vm.UserError(f"{ERROR_EXPECTED} {problem}")
+            self.returned_deposits.append(_canon({
+                "index": len(self.returned_deposits) + 1,
+                "condition_id": str(condition_id)[:MAX_ID_ECHO],
+                "sender": self._sender_key(),
+                "amount": sent,
+                "reason": problem,
+                "returned_at": _now(),
+            }))
+            self._send(gl.message.sender_address, sent)
+            return f"RETURNED: {problem}"
+        c = self.conditions[condition_id]
         c.bounty_deposited = u256(sent)
         c.funded_at = u256(_now())
         c.status = S_FUNDED
         self.total_locked = u256(int(self.total_locked) + sent)
+        return "FUNDED"
 
     @gl.public.write
     def cancel_condition(self, condition_id: str) -> None:
@@ -1053,6 +1089,7 @@ class Statelock(gl.Contract):
             "version": self.version,
             "condition_count": int(self.condition_count),
             "total_locked": int(self.total_locked),
+            "returned_deposit_count": len(self.returned_deposits),
             "time_source": "GenLayer transaction datetime (UTC Unix seconds)",
             "outcomes": sorted(VERDICTS),
             "consequence": dict(CONSEQUENCE),
@@ -1072,6 +1109,16 @@ class Statelock(gl.Contract):
                 "max_horizon_seconds": MAX_HORIZON_SECONDS,
             },
         }
+
+    @gl.public.view
+    def get_returned_deposits(self, offset: int = 0, limit: int = 20) -> dict:
+        """Deposits that could not fund a condition and were sent straight
+        back, oldest first."""
+        total = len(self.returned_deposits)
+        start = max(0, int(offset))
+        end = min(total, start + max(1, min(int(limit), MAX_PAGE)))
+        rows = [json.loads(self.returned_deposits[i]) for i in range(start, end)]
+        return {"total": total, "offset": start, "count": len(rows), "rows": rows}
 
     @gl.public.view
     def get_condition(self, condition_id: str) -> dict:

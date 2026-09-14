@@ -19,6 +19,7 @@ against that exact schema in `app/tests/fixtures/statelock-schema.json`).
 | `conditions_by_creator` | `TreeMap[str, DynArray[str]]` | lower-cased creator address → ids |
 | `observations` | `TreeMap[str, DynArray[str]]` | condition id → canonical JSON observation records, oldest first |
 | `total_locked` | `u256` | atto-GEN currently held for all conditions |
+| `returned_deposits` | `DynArray[str]` | canonical JSON records of deposits that could not fund a condition and were sent straight back |
 
 `Condition` (an `@allow_storage @dataclass`):
 
@@ -72,7 +73,7 @@ method advances a clock. Every node executing a transaction reads the same value
 | Method | Caller | Allowed from | Checks | Effect |
 |---|---|---|---|---|
 | `create_condition(condition_text, policy_json, observation_start, deadline, bounty_terms, beneficiary) -> str` | anyone (becomes creator) | — | text 1..500 chars; policy valid (below); `observation_start` > now; `deadline` > `observation_start`; `deadline` ≤ now + 366 days; `bounty_terms` > 0; beneficiary a valid non-zero address | new `DRAFT`, returns the id |
-| `fund_condition(condition_id)` **payable** | creator | DRAFT | `gl.message.value` must equal `bounty_terms` exactly (under, over and zero refused) | `FUNDED`, `bounty_deposited = value`, `total_locked += value` |
+| `fund_condition(condition_id) -> str` **payable** | creator | DRAFT | `gl.message.value` must equal `bounty_terms` exactly | `FUNDED`, `bounty_deposited = value`, `total_locked += value`; returns `FUNDED`. A deposit that cannot fund (unknown id, not the creator, wrong state, wrong amount) is **returned**: the exact value is transferred back to the sender in the same transaction, a record is appended to `returned_deposits`, nothing else changes, and it returns `RETURNED: <reason>`. A call with no value is refused. |
 | `cancel_condition(condition_id)` | creator | DRAFT, FUNDED | — | `CANCELLED`; a funded deposit is zeroed and transferred back to the creator |
 | `arm_condition(condition_id)` | creator | FUNDED | fully funded; now < `observation_start` | `ARMED`: nothing about the condition can change and the bounty cannot be withdrawn |
 | `observe_condition(condition_id)` | anyone | ARMED, OBSERVING | `observation_start` ≤ now ≤ `deadline` + 7 days; at most 4 observations at or before the deadline | runs the adjudication (below) and appends an observation record; conclusive → `ACCEPTED` with the result, otherwise `OBSERVING` |
@@ -173,6 +174,7 @@ Observation record (`get_observation` returns all of them):
 ## Funding and settlement
 
 - The deposit is `gl.message.value`, never an argument, and must equal `bounty_terms`.
+- A deposit is never refused, because GenLayer credits a transaction's value to the contract even when execution fails (observed on StudioNet: `value_credited: true` on refused funding transactions, whose value then sat outside every ledger). Any deposit that cannot fund is sent straight back to its sender, exactly, in the same transaction, and recorded with its reason.
 - The consequence table is a constant: `SATISFIED → beneficiary`, `NOT_SATISFIED → creator`,
   `UNDETERMINED → creator`. The destination is chosen in code from the finalized verdict.
 - `settle_condition` validates, refuses a second settlement, zeroes `bounty_deposited` and
@@ -188,10 +190,11 @@ Observation record (`get_observation` returns all of them):
 
 | View | Returns |
 |---|---|
-| `get_protocol_info()` | version, `condition_count`, `total_locked`, time source, outcomes, consequence table, source kinds, temporal rules, failure behaviour, every limit |
+| `get_protocol_info()` | version, `condition_count`, `total_locked`, `returned_deposit_count`, time source, outcomes, consequence table, source kinds, temporal rules, failure behaviour, every limit |
 | `get_condition(condition_id)` | every stored field plus `observation_closes`, `finalizable_at`, `locked`, `terminal`, `consequence`, `early_observations_allowed` |
 | `get_policy(condition_id)` | the canonical policy plus `policy_hash` |
 | `get_observation(condition_id)` | every observation record, oldest first |
 | `get_final_result(condition_id)` | `has_result`, `final`, verdict, reason, temporal, deciding observation, `accepted_at`, `finalizable_at`, `finalized_at`, `destination`, `settled`, `settled_to`, `settled_amount`, `settled_at` |
 | `list_conditions(offset, limit)` | `{total, offset, count, rows}`; `limit` capped at 50 |
 | `list_conditions_by_creator(creator, offset, limit)` | the same, for one creator |
+| `get_returned_deposits(offset, limit)` | `{total, offset, count, rows}` of `{index, condition_id, sender, amount, reason, returned_at}`, oldest first |

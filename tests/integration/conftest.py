@@ -337,12 +337,29 @@ class World:
         def run():
             live = self.live
             first = self.ids["satisfied"]
+            # A deposit that cannot fund is RETURNED in the same transaction: the
+            # chain credits a failed transaction's value to the contract, so a
+            # refusal would strand it (observed in the first live runs).
+            third_before = live.balance(live.third.address)
+            creator_before = live.balance(live.creator.address)
             under = live.write(live.creator, "fund_condition", first, value=BOUNTY - 1,
-                               step="fund with 1 atto short (refused)", commitment="satisfied")
-            live.record["refused_underfund"] = under
+                               step="fund with 1 atto short (returned)", commitment="satisfied")
+            live.record["returned_underfund"] = under
             third = live.write(live.third, "fund_condition", first, value=BOUNTY,
-                               step="fund by a third party (refused)", commitment="satisfied")
-            live.record["refused_third_party_fund"] = third
+                               step="fund by a third party (returned)", commitment="satisfied")
+            live.record["returned_third_party_fund"] = third
+            zero = live.write(live.creator, "fund_condition", first, value=0,
+                              step="fund with no value (refused)", commitment="satisfied")
+            live.record["refused_zero_fund"] = zero
+            live.await_(lambda: live.balance(live.third.address) == third_before, "third party deposit returned",
+                        tries=60, pause=10)
+            live.await_(lambda: live.balance(live.creator.address) == creator_before,
+                        "creator short deposit returned", tries=60, pause=10)
+            live.record["returned_deposits"] = live.read("get_returned_deposits", 0, 50)
+            live.record["balances_after_returns"] = {
+                "third_party": {"before": third_before, "after": live.balance(live.third.address)},
+                "creator": {"before": creator_before, "after": live.balance(live.creator.address)},
+                "contract": live.balance(live.address)}
             for key, cid in self.ids.items():
                 live.write(live.creator, "fund_condition", cid, value=BOUNTY,
                            step=f"fund_condition [{key}]", commitment=key)
@@ -474,6 +491,8 @@ class World:
             for key, cid in self.ids.items():
                 live.write(live.third, "settle_condition", cid, wait="FINALIZED",
                            step=f"settle_condition [{key}]", commitment=key)
+            # the contract holds exactly the three live bounties: nothing stranded
+            assert before["contract"] == 3 * BOUNTY, before
             expected_beneficiary = before["beneficiary"] + BOUNTY
             live.await_(lambda: live.balance(live.beneficiary.address) == expected_beneficiary,
                         "beneficiary payout", tries=90, pause=10)

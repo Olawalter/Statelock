@@ -11,23 +11,26 @@ deterministic contract code and covered by the tests named in the matrix below.
    including cancellation, is possible.
 2. **Full funding before ARM.** A deposit is `gl.message.value` and must equal the bounty terms
    exactly; `arm_condition` requires the deposit to equal the terms.
-3. **The bounty cannot leave early.** From ARMED until FINALIZED no method transfers value.
-4. **The model never controls money.** The nondeterministic block returns per-fact findings
+3. **No deposit is ever kept by mistake.** A deposit that cannot fund is transferred straight
+   back to its sender in the same transaction (a refusal would strand it, see below).
+4. **The bounty cannot leave early.** From ARMED until FINALIZED no method transfers any part of
+   the locked bounty (the only transfer possible is returning a new, unusable deposit to its sender).
+5. **The model never controls money.** The nondeterministic block returns per-fact findings
    only. Amount, recipient, deadline, sources and the consequence table are contract constants
    or frozen terms; the verdict is derived in code.
-5. **Consensus-bound results.** Every field of a stored observation is compared by every
+6. **Consensus-bound results.** Every field of a stored observation is compared by every
    validator against its own independent fetch, reading and derivation.
-6. **Uncertainty is never forced into a result.** Unreadable, conflicting, undated or
+7. **Uncertainty is never forced into a result.** Unreadable, conflicting, undated or
    insufficiently independent evidence is UNDETERMINED; a conclusive SATISFIED or NOT_SATISFIED
    needs every allowed source readable.
-7. **Settlement waits for finality.** Only FINALIZED settles, and FINALIZED is reachable only
+8. **Settlement waits for finality.** Only FINALIZED settles, and FINALIZED is reachable only
    600 s after the result was accepted (or after the observation period expired unobserved).
-8. **Exactly once.** Settlement zeroes the ledger and marks SETTLED before the transfer is
+9. **Exactly once.** Settlement zeroes the ledger and marks SETTLED before the transfer is
    emitted; a second attempt fails at the status check.
-9. **No privileged party.** The contract has no owner, admin, pause, upgrade or override.
+10. **No privileged party.** The contract has no owner, admin, pause, upgrade or override.
    `settle_condition`, `finalize_condition` and `observe_condition` are permissionless, and
    their outcome does not depend on who calls.
-10. **No stranded bounty.** A condition never conclusively observed finalizes as
+11. **No stranded bounty.** A condition never conclusively observed finalizes as
     UNDETERMINED / NOT_OBSERVED after the deadline plus seven days and refunds the creator.
 
 ## Security test matrix (build prompt §43)
@@ -60,9 +63,10 @@ the official mechanisms). Live tests: `tests/integration/` on StudioNet. Fronten
 | Wrong contract address | configured address must expose STATELOCK's exact schema and identify as STATELOCK, else transactions are disabled | `app/tests/validation.test.ts` (deployment validation) |
 | Admin override | no owner or privileged state | `test_no_owner_admin_or_privileged_state` |
 | Payment as an argument | deposits are the transaction value | `test_payment_is_the_transaction_value_not_an_argument` |
+| Wrong, duplicate or third-party deposit | returned exactly to the sender in the same transaction, recorded; no ledger touched | `test_underfunding_overfunding_and_zero_are_refused`, `test_only_the_creator_funds`, `test_double_funding_is_refused`, `test_a_deposit_for_an_unknown_condition_is_returned`, `test_a_returned_deposit_never_touches_any_ledger`; live `test_funding_must_be_exact_and_by_the_creator` (sender balances restored) |
 
 Each test was mutation-checked: the property it guards was broken in a scratch copy and the
-suite was confirmed to fail (20/20 contract mutants, 12/12 frontend mutants).
+suite was confirmed to fail (25/25 contract mutants, 12/12 frontend mutants).
 
 ## Prompt injection
 
@@ -138,6 +142,19 @@ Both are recomputed on every state-changing call.
   refusal is shown with the contract's own sentence; a transaction still inside its appeal
   window is labelled as such.
 - Public environment variables hold no secrets.
+
+## Platform issue: value on failed transactions
+
+The first live runs sent a funding transaction one atto short, and another from a third
+party; the contract refused both. StudioNet still credited both values to the contract
+(`value_credited: true` on transactions whose execution was ERROR). A refused transaction
+changes no state, so that GEN sat in the contract outside every ledger, and — with no admin —
+could never be returned. STATELOCK therefore never refuses a deposit that carries value: it
+returns it (see invariant 3).
+
+The same platform behaviour applies to value sent to a method that is not payable; GenVM
+rejects such a call before contract code runs, so no contract can return it. The app never
+attaches value to any method except `fund_condition`.
 
 ## Platform issue: appeals on StudioNet
 
