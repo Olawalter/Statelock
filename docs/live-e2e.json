@@ -1,0 +1,947 @@
+{
+  "network": "GenLayer StudioNet",
+  "chain_id": 61999,
+  "rpc": "https://studio.genlayer.com/api",
+  "finality_window_seconds": 30,
+  "accounts": {
+    "creator": "0xD5C21d4e5F279aE407071F36D15245540dCc8f2C",
+    "beneficiary": "0x3701433Bcd0895e8507238628e7F4AcBeB737D1E",
+    "third_party": "0x0c5331E4f504cb113CD4caD41D9ee381fbB9a128"
+  },
+  "started_at": "2026-09-14T21:30:30Z",
+  "transactions": [
+    {
+      "step": "create with a past start (refused)",
+      "commitment": null,
+      "function": "create_condition",
+      "caller": "creator",
+      "tx": "0xda3acaad29cab9b10688b89519788feb1a9cdc45d18f15060833469d1e07d5a5",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "ERROR",
+      "refused": true,
+      "refusal": "[EXPECTED] observation_start must be after the creation time (1789417868 <= 1789421472)"
+    },
+    {
+      "step": "create_condition [satisfied]",
+      "commitment": "satisfied",
+      "function": "create_condition",
+      "caller": "creator",
+      "tx": "0xa2984b769acbc7900997d6592ebb25f8aa83177523be65273fd4f810c8558594",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "create_condition [not_satisfied]",
+      "commitment": "not_satisfied",
+      "function": "create_condition",
+      "caller": "creator",
+      "tx": "0x9701262aa5683d0a1d60317109a8e0bfd2e59742327b074536c2cff85597b1b9",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "create_condition [undetermined]",
+      "commitment": "undetermined",
+      "function": "create_condition",
+      "caller": "creator",
+      "tx": "0x5c72109eded63c9981df9ccedb75f2841ea3ea1a7bf2950b23f45eb11d9641d8",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "create_condition [appeal probe]",
+      "commitment": "appeal_probe",
+      "function": "create_condition",
+      "caller": "creator",
+      "tx": "0x87029a6003cd5ea471d1d196a266724392077f41ca4bf862b5607568a7059cf6",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "fund with 1 atto short (returned)",
+      "commitment": "satisfied",
+      "function": "fund_condition",
+      "caller": "creator",
+      "tx": "0xe1b750970a0caee6b94f11ad47906b65abb7388c622fe3bacdbb942e496e5bb3",
+      "value": 9999999999999999,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "fund by a third party (returned)",
+      "commitment": "satisfied",
+      "function": "fund_condition",
+      "caller": "third_party",
+      "tx": "0x04045168b5c558718a67ee21b7209c411c557915def798dc47858e69aefbca47",
+      "value": 10000000000000000,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "fund with no value (refused)",
+      "commitment": "satisfied",
+      "function": "fund_condition",
+      "caller": "creator",
+      "tx": "0x2cfd1917db8d136683f68f8148ce6b84f5b0371f99fcec7acf64a893a9ba09bd",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "ERROR",
+      "refused": true,
+      "refusal": "[EXPECTED] funding must equal the bounty terms exactly: required 10000000000000000, received 0"
+    },
+    {
+      "step": "fund_condition [satisfied]",
+      "commitment": "satisfied",
+      "function": "fund_condition",
+      "caller": "creator",
+      "tx": "0x30f82e4ffc7f0596bb27efa40c54de74d9d9892def07acde4a3b318ca617a1f9",
+      "value": 10000000000000000,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "arm_condition [satisfied]",
+      "commitment": "satisfied",
+      "function": "arm_condition",
+      "caller": "creator",
+      "tx": "0x36757509f2d9dd941d89b3e8c04342cdea63afc4b73c637d6d32b39e7f8843ed",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "fund_condition [not_satisfied]",
+      "commitment": "not_satisfied",
+      "function": "fund_condition",
+      "caller": "creator",
+      "tx": "0x0f3cdb7dd7eb0e2c95d94647efa941a0e98dd7d0f9a471ded4dd4d40dfcdaacf",
+      "value": 10000000000000000,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "arm_condition [not_satisfied]",
+      "commitment": "not_satisfied",
+      "function": "arm_condition",
+      "caller": "creator",
+      "tx": "0x1b3bf0b8518a7c46dc8da0262f9cbf1c47ad6959a734e3fa19028450de024f1d",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "fund_condition [undetermined]",
+      "commitment": "undetermined",
+      "function": "fund_condition",
+      "caller": "creator",
+      "tx": "0xfaa2db9c47b8347db127b5669f92f336fff80f5dc2fae3417ce6d4afff7ce19c",
+      "value": 10000000000000000,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "arm_condition [undetermined]",
+      "commitment": "undetermined",
+      "function": "arm_condition",
+      "caller": "creator",
+      "tx": "0xaecfbd159833190efaea665962181bfcd6ef8ab2ec34ea4aedd1dc9883c3d496",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "fund_condition [appeal probe]",
+      "commitment": "appeal_probe",
+      "function": "fund_condition",
+      "caller": "creator",
+      "tx": "0x05e9e378a0fa56f48df8be7ed584e1efe69b461508d29bd17cfe7bdc94e26861",
+      "value": 10000000000000000,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "arm_condition [appeal probe]",
+      "commitment": "appeal_probe",
+      "function": "arm_condition",
+      "caller": "creator",
+      "tx": "0x9959f3e529ea0fc4d49c4174bbc6d1e8a7b2a0c9a94905d6ac3ed10939966668",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "cancel after ARM (refused)",
+      "commitment": "satisfied",
+      "function": "cancel_condition",
+      "caller": "creator",
+      "tx": "0x54e9b6ed83c0d798a59012ff4ed5c127350394217b47a9beddb5e4d325e85af1",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "ERROR",
+      "refused": true,
+      "refusal": "[EXPECTED] illegal transition from ARMED; expected one of ['DRAFT', 'FUNDED']"
+    },
+    {
+      "step": "observe before the window (refused)",
+      "commitment": "satisfied",
+      "function": "observe_condition",
+      "caller": "third_party",
+      "tx": "0x78130f469c27cd184dc8814e5ab9e70cd217638fc73f70a314b0d350fd23a5be",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "ERROR",
+      "refused": true,
+      "refusal": "[EXPECTED] observation window opens at 1789422968 (transaction time 1789421695)"
+    },
+    {
+      "step": "observe_condition [satisfied] (within window)",
+      "commitment": "satisfied",
+      "function": "observe_condition",
+      "caller": "third_party",
+      "tx": "0x87eb3831f5ae0a71792f86ee76247dfcf717df3c29cce67dfc2ce14da12c8f22",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "observe_condition [appeal probe]",
+      "commitment": "appeal_probe",
+      "function": "observe_condition",
+      "caller": "third_party",
+      "tx": "0x356b194d75eb1f601f1a69bb1b2910e2761027954f217e54acb6d14c4e59b631",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "observe_condition [not_satisfied] (after deadline)",
+      "commitment": "not_satisfied",
+      "function": "observe_condition",
+      "caller": "third_party",
+      "tx": "0x5a785956d521f0ccc37904369a1731f849a457058f6cafa6d455cd758a0b7cc5",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "observe_condition [undetermined] (after deadline)",
+      "commitment": "undetermined",
+      "function": "observe_condition",
+      "caller": "beneficiary",
+      "tx": "0xa6d37b5a61dd2f7a1e8f03e84afb355879a342476624fc9ae03e16c141e632e7",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "settle while ACCEPTED (refused)",
+      "commitment": "satisfied",
+      "function": "settle_condition",
+      "caller": "third_party",
+      "tx": "0xb146c1cbbbbf660958c6c4e81e00f111a8420a972467acacfc0d411473e4ba5b",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "ERROR",
+      "refused": true,
+      "refusal": "[EXPECTED] illegal transition from ACCEPTED; expected one of ['FINALIZED']"
+    },
+    {
+      "step": "finalize before the delay (refused)",
+      "commitment": "satisfied",
+      "function": "finalize_condition",
+      "caller": "third_party",
+      "tx": "0x3ee58d2f2b31db3d87fc43e193a65da6c6dc9f2217ce95f76a03f89201df3cad",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "ERROR",
+      "refused": true,
+      "refusal": "[EXPECTED] result can be finalized from 1789423619 (transaction time 1789423397)"
+    },
+    {
+      "step": "finalize_condition [satisfied]",
+      "commitment": "satisfied",
+      "function": "finalize_condition",
+      "caller": "third_party",
+      "tx": "0xc41f0aea16b53b39ff9e1bc30fe2b327ac32d1b5eb345ae3e29c23df082abc14",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "finalize_condition [not_satisfied]",
+      "commitment": "not_satisfied",
+      "function": "finalize_condition",
+      "caller": "third_party",
+      "tx": "0xc274883c6795172933cbd00c5869ba255e4352e2bac937eebc0db50ca8ae3e05",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "finalize_condition [undetermined]",
+      "commitment": "undetermined",
+      "function": "finalize_condition",
+      "caller": "third_party",
+      "tx": "0x84f9b6413a65820d01d1bf73a596f0ca9a4cfc51b2627d4fdfb973d2c11d00e5",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "settle_condition [satisfied]",
+      "commitment": "satisfied",
+      "function": "settle_condition",
+      "caller": "third_party",
+      "tx": "0x5367bf1476759b5016b89b1c6e52daae161235e49c8972e0c44ab6bada49111e",
+      "value": 0,
+      "status": "FINALIZED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "settle_condition [not_satisfied]",
+      "commitment": "not_satisfied",
+      "function": "settle_condition",
+      "caller": "third_party",
+      "tx": "0xb6ad6af36e1dd1033f495f5a538fb4156cde23b12615db943927bc082ba54ea8",
+      "value": 0,
+      "status": "FINALIZED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "settle_condition [undetermined]",
+      "commitment": "undetermined",
+      "function": "settle_condition",
+      "caller": "third_party",
+      "tx": "0x6f468db4b9bc83aa69e1aeaafc87a7363eaf98cbc2955d2788e16dc93daac1d4",
+      "value": 0,
+      "status": "FINALIZED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "SUCCESS",
+      "refused": false
+    },
+    {
+      "step": "settle a second time (refused)",
+      "commitment": "satisfied",
+      "function": "settle_condition",
+      "caller": "third_party",
+      "tx": "0x3082b0e17e41326108968647c1bdb96e4271e3416a6d44a3fbd20d19507fe8cd",
+      "value": 0,
+      "status": "ACCEPTED",
+      "consensus": "MAJORITY_AGREE",
+      "execution": "ERROR",
+      "refused": true,
+      "refusal": "[EXPECTED] illegal transition from SETTLED; expected one of ['FINALIZED']"
+    }
+  ],
+  "commitments": {
+    "satisfied": {
+      "condition_id": "SL-000001",
+      "text": "genlayer-js releases version 1.1.8",
+      "observation_start": 1789422968,
+      "deadline": 1789509368,
+      "observe_tx": "0x87eb3831f5ae0a71792f86ee76247dfcf717df3c29cce67dfc2ce14da12c8f22",
+      "observations": [
+        {
+          "conclusive": true,
+          "facts": [
+            {
+              "independent": null,
+              "name": "released_version",
+              "status": "CONFIRMED",
+              "value": "1.1.8"
+            },
+            {
+              "independent": null,
+              "name": "public_release",
+              "status": "CONFIRMED",
+              "value": ""
+            }
+          ],
+          "index": 1,
+          "observed_at": 1789423019,
+          "phase": "WITHIN_WINDOW",
+          "reason_code": "REQUIRED_FACTS_CONFIRMED",
+          "sources_readable": [
+            "S1",
+            "S2"
+          ],
+          "temporal_result": "BEFORE_DEADLINE",
+          "verdict": "SATISFIED"
+        }
+      ],
+      "after_observation": {
+        "accepted_at": 1789423019,
+        "armed_at": 1789421608,
+        "beneficiary": "0x3701433Bcd0895e8507238628e7F4AcBeB737D1E",
+        "bounty_deposited": 10000000000000000,
+        "bounty_terms": 10000000000000000,
+        "cancelled_at": 0,
+        "condition_id": "SL-000001",
+        "condition_text": "genlayer-js releases version 1.1.8",
+        "consequence": {
+          "NOT_SATISFIED": "CREATOR",
+          "SATISFIED": "BENEFICIARY",
+          "UNDETERMINED": "CREATOR"
+        },
+        "created_at": 1789421484,
+        "creator": "0xD5C21d4e5F279aE407071F36D15245540dCc8f2C",
+        "deadline": 1789509368,
+        "early_observations": 1,
+        "early_observations_allowed": 4,
+        "finalizable_at": 1789423619,
+        "finalized_at": 0,
+        "funded_at": 1789421597,
+        "last_observed_at": 1789423019,
+        "locked": true,
+        "observation_closes": 1790114168,
+        "observation_count": 1,
+        "observation_start": 1789422968,
+        "policy_hash": "sha256:f6c67edb466cd5c20bfb144da10ad6599cfa1d0fa286e68d3e145a08cdaff461",
+        "result_observation": 1,
+        "result_reason": "REQUIRED_FACTS_CONFIRMED",
+        "result_temporal": "BEFORE_DEADLINE",
+        "result_verdict": "SATISFIED",
+        "settled_amount": 0,
+        "settled_at": 0,
+        "settled_to": "",
+        "status": "ACCEPTED",
+        "terminal": false,
+        "terms_hash": "sha256:e1e8f7a810a19c6333266afaaae57cf1788e339771417b5f6d2e3a4dab96db27"
+      },
+      "observe_tx_final": {
+        "status": "FINALIZED",
+        "consensus": "MAJORITY_AGREE",
+        "appealed": false,
+        "votes": [
+          "agree",
+          "agree",
+          "agree",
+          "idle",
+          "idle"
+        ],
+        "created_timestamp": "1789423019"
+      },
+      "final_result": {
+        "accepted_at": 1789423019,
+        "condition_id": "SL-000001",
+        "destination": "0x3701433Bcd0895e8507238628e7F4AcBeB737D1E",
+        "final": true,
+        "finalizable_at": 1789423619,
+        "finalized_at": 1789423989,
+        "has_result": true,
+        "observation_index": 1,
+        "reason_code": "REQUIRED_FACTS_CONFIRMED",
+        "settled": false,
+        "settled_amount": 0,
+        "settled_at": 0,
+        "settled_to": "",
+        "status": "FINALIZED",
+        "temporal_result": "BEFORE_DEADLINE",
+        "verdict": "SATISFIED"
+      },
+      "settled": {
+        "accepted_at": 1789423019,
+        "condition_id": "SL-000001",
+        "destination": "0x3701433Bcd0895e8507238628e7F4AcBeB737D1E",
+        "final": true,
+        "finalizable_at": 1789423619,
+        "finalized_at": 1789423989,
+        "has_result": true,
+        "observation_index": 1,
+        "reason_code": "REQUIRED_FACTS_CONFIRMED",
+        "settled": true,
+        "settled_amount": 10000000000000000,
+        "settled_at": 1789424052,
+        "settled_to": "0x3701433Bcd0895e8507238628e7F4AcBeB737D1E",
+        "status": "SETTLED",
+        "temporal_result": "BEFORE_DEADLINE",
+        "verdict": "SATISFIED"
+      }
+    },
+    "not_satisfied": {
+      "condition_id": "SL-000002",
+      "text": "genlayer-js's latest stable release is version 99.0.0",
+      "observation_start": 1789422968,
+      "deadline": 1789423268,
+      "observe_tx": "0x5a785956d521f0ccc37904369a1731f849a457058f6cafa6d455cd758a0b7cc5",
+      "observations": [
+        {
+          "conclusive": true,
+          "facts": [
+            {
+              "independent": null,
+              "name": "latest_version",
+              "status": "NOT_CONFIRMED",
+              "value": ""
+            }
+          ],
+          "index": 1,
+          "observed_at": 1789423318,
+          "phase": "AFTER_DEADLINE",
+          "reason_code": "REQUIRED_FACT_NOT_CONFIRMED",
+          "sources_readable": [
+            "S1",
+            "S2"
+          ],
+          "temporal_result": "NOT_APPLICABLE",
+          "verdict": "NOT_SATISFIED"
+        }
+      ],
+      "after_observation": {
+        "accepted_at": 1789423318,
+        "armed_at": 1789421629,
+        "beneficiary": "0x3701433Bcd0895e8507238628e7F4AcBeB737D1E",
+        "bounty_deposited": 10000000000000000,
+        "bounty_terms": 10000000000000000,
+        "cancelled_at": 0,
+        "condition_id": "SL-000002",
+        "condition_text": "genlayer-js's latest stable release is version 99.0.0",
+        "consequence": {
+          "NOT_SATISFIED": "CREATOR",
+          "SATISFIED": "BENEFICIARY",
+          "UNDETERMINED": "CREATOR"
+        },
+        "created_at": 1789421499,
+        "creator": "0xD5C21d4e5F279aE407071F36D15245540dCc8f2C",
+        "deadline": 1789423268,
+        "early_observations": 0,
+        "early_observations_allowed": 4,
+        "finalizable_at": 1789423918,
+        "finalized_at": 0,
+        "funded_at": 1789421618,
+        "last_observed_at": 1789423318,
+        "locked": true,
+        "observation_closes": 1790028068,
+        "observation_count": 1,
+        "observation_start": 1789422968,
+        "policy_hash": "sha256:8138bed17b72ebfbea58b3eb19ed28dd7113d3c21de3a0b350f475492799139c",
+        "result_observation": 1,
+        "result_reason": "REQUIRED_FACT_NOT_CONFIRMED",
+        "result_temporal": "NOT_APPLICABLE",
+        "result_verdict": "NOT_SATISFIED",
+        "settled_amount": 0,
+        "settled_at": 0,
+        "settled_to": "",
+        "status": "ACCEPTED",
+        "terminal": false,
+        "terms_hash": "sha256:3815c597d31fcec5ef5cf3249ff3e94fcb7096f595eaae69cdccba1647a79406"
+      },
+      "observe_tx_final": {
+        "status": "FINALIZED",
+        "consensus": "MAJORITY_AGREE",
+        "appealed": false,
+        "votes": [
+          "agree",
+          "agree",
+          "agree",
+          "idle",
+          "idle"
+        ],
+        "created_timestamp": "1789423318"
+      },
+      "final_result": {
+        "accepted_at": 1789423318,
+        "condition_id": "SL-000002",
+        "destination": "0xD5C21d4e5F279aE407071F36D15245540dCc8f2C",
+        "final": true,
+        "finalizable_at": 1789423918,
+        "finalized_at": 1789424001,
+        "has_result": true,
+        "observation_index": 1,
+        "reason_code": "REQUIRED_FACT_NOT_CONFIRMED",
+        "settled": false,
+        "settled_amount": 0,
+        "settled_at": 0,
+        "settled_to": "",
+        "status": "FINALIZED",
+        "temporal_result": "NOT_APPLICABLE",
+        "verdict": "NOT_SATISFIED"
+      },
+      "settled": {
+        "accepted_at": 1789423318,
+        "condition_id": "SL-000002",
+        "destination": "0xD5C21d4e5F279aE407071F36D15245540dCc8f2C",
+        "final": true,
+        "finalizable_at": 1789423918,
+        "finalized_at": 1789424001,
+        "has_result": true,
+        "observation_index": 1,
+        "reason_code": "REQUIRED_FACT_NOT_CONFIRMED",
+        "settled": true,
+        "settled_amount": 10000000000000000,
+        "settled_at": 1789424091,
+        "settled_to": "0xD5C21d4e5F279aE407071F36D15245540dCc8f2C",
+        "status": "SETTLED",
+        "temporal_result": "NOT_APPLICABLE",
+        "verdict": "NOT_SATISFIED"
+      }
+    },
+    "undetermined": {
+      "condition_id": "SL-000003",
+      "text": "genlayer-js releases version 99.0.0",
+      "observation_start": 1789422968,
+      "deadline": 1789423268,
+      "observe_tx": "0xa6d37b5a61dd2f7a1e8f03e84afb355879a342476624fc9ae03e16c141e632e7",
+      "observations": [
+        {
+          "conclusive": true,
+          "facts": [
+            {
+              "independent": null,
+              "name": "released_version",
+              "status": "NOT_CONFIRMED",
+              "value": ""
+            }
+          ],
+          "index": 1,
+          "observed_at": 1789423340,
+          "phase": "AFTER_DEADLINE",
+          "reason_code": "SOURCES_UNAVAILABLE",
+          "sources_readable": [],
+          "temporal_result": "NOT_APPLICABLE",
+          "verdict": "UNDETERMINED"
+        }
+      ],
+      "after_observation": {
+        "accepted_at": 1789423340,
+        "armed_at": 1789421651,
+        "beneficiary": "0x3701433Bcd0895e8507238628e7F4AcBeB737D1E",
+        "bounty_deposited": 10000000000000000,
+        "bounty_terms": 10000000000000000,
+        "cancelled_at": 0,
+        "condition_id": "SL-000003",
+        "condition_text": "genlayer-js releases version 99.0.0",
+        "consequence": {
+          "NOT_SATISFIED": "CREATOR",
+          "SATISFIED": "BENEFICIARY",
+          "UNDETERMINED": "CREATOR"
+        },
+        "created_at": 1789421513,
+        "creator": "0xD5C21d4e5F279aE407071F36D15245540dCc8f2C",
+        "deadline": 1789423268,
+        "early_observations": 0,
+        "early_observations_allowed": 4,
+        "finalizable_at": 1789423940,
+        "finalized_at": 0,
+        "funded_at": 1789421639,
+        "last_observed_at": 1789423340,
+        "locked": true,
+        "observation_closes": 1790028068,
+        "observation_count": 1,
+        "observation_start": 1789422968,
+        "policy_hash": "sha256:1693700376ec435af1551b5fb2d86854b6d925178dce27817c07759937368a1d",
+        "result_observation": 1,
+        "result_reason": "SOURCES_UNAVAILABLE",
+        "result_temporal": "NOT_APPLICABLE",
+        "result_verdict": "UNDETERMINED",
+        "settled_amount": 0,
+        "settled_at": 0,
+        "settled_to": "",
+        "status": "ACCEPTED",
+        "terminal": false,
+        "terms_hash": "sha256:27dd4a05a97f9ca4bc681aad3ae4032c2a6e2314e96fa69fff67792f61e54f53"
+      },
+      "observe_tx_final": {
+        "status": "FINALIZED",
+        "consensus": "MAJORITY_AGREE",
+        "appealed": false,
+        "votes": [
+          "agree",
+          "agree",
+          "agree",
+          "idle",
+          "idle"
+        ],
+        "created_timestamp": "1789423340"
+      },
+      "final_result": {
+        "accepted_at": 1789423340,
+        "condition_id": "SL-000003",
+        "destination": "0xD5C21d4e5F279aE407071F36D15245540dCc8f2C",
+        "final": true,
+        "finalizable_at": 1789423940,
+        "finalized_at": 1789424014,
+        "has_result": true,
+        "observation_index": 1,
+        "reason_code": "SOURCES_UNAVAILABLE",
+        "settled": false,
+        "settled_amount": 0,
+        "settled_at": 0,
+        "settled_to": "",
+        "status": "FINALIZED",
+        "temporal_result": "NOT_APPLICABLE",
+        "verdict": "UNDETERMINED"
+      },
+      "settled": {
+        "accepted_at": 1789423340,
+        "condition_id": "SL-000003",
+        "destination": "0xD5C21d4e5F279aE407071F36D15245540dCc8f2C",
+        "final": true,
+        "finalizable_at": 1789423940,
+        "finalized_at": 1789424014,
+        "has_result": true,
+        "observation_index": 1,
+        "reason_code": "SOURCES_UNAVAILABLE",
+        "settled": true,
+        "settled_amount": 10000000000000000,
+        "settled_at": 1789424129,
+        "settled_to": "0xD5C21d4e5F279aE407071F36D15245540dCc8f2C",
+        "status": "SETTLED",
+        "temporal_result": "NOT_APPLICABLE",
+        "verdict": "UNDETERMINED"
+      }
+    }
+  },
+  "deployment": {
+    "address": "0xc07bc3843F6dbbfcff40D4320ffcFBFD8E3C3e6D",
+    "tx": "0x0af39a0d0147e2cd21da287636a97bd7b8d979ad57b8048f1335c3dd8690aab4",
+    "consensus": "MAJORITY_AGREE"
+  },
+  "contract": "0xc07bc3843F6dbbfcff40D4320ffcFBFD8E3C3e6D",
+  "appeal_probe_deployment": {
+    "address": "0x607f001703eFF601a812Df5DaF67bA317879D0D0",
+    "tx": "0xbc9c6ebce7056dada75aeeb5c054734c9797318071c5f455fafab6970839a638",
+    "consensus": "MAJORITY_AGREE"
+  },
+  "refused_create": {
+    "step": "create with a past start (refused)",
+    "commitment": null,
+    "function": "create_condition",
+    "caller": "creator",
+    "tx": "0xda3acaad29cab9b10688b89519788feb1a9cdc45d18f15060833469d1e07d5a5",
+    "value": 0,
+    "status": "ACCEPTED",
+    "consensus": "MAJORITY_AGREE",
+    "execution": "ERROR",
+    "refused": true,
+    "refusal": "[EXPECTED] observation_start must be after the creation time (1789417868 <= 1789421472)"
+  },
+  "returned_underfund": {
+    "step": "fund with 1 atto short (returned)",
+    "commitment": "satisfied",
+    "function": "fund_condition",
+    "caller": "creator",
+    "tx": "0xe1b750970a0caee6b94f11ad47906b65abb7388c622fe3bacdbb942e496e5bb3",
+    "value": 9999999999999999,
+    "status": "ACCEPTED",
+    "consensus": "MAJORITY_AGREE",
+    "execution": "SUCCESS",
+    "refused": false
+  },
+  "returned_third_party_fund": {
+    "step": "fund by a third party (returned)",
+    "commitment": "satisfied",
+    "function": "fund_condition",
+    "caller": "third_party",
+    "tx": "0x04045168b5c558718a67ee21b7209c411c557915def798dc47858e69aefbca47",
+    "value": 10000000000000000,
+    "status": "ACCEPTED",
+    "consensus": "MAJORITY_AGREE",
+    "execution": "SUCCESS",
+    "refused": false
+  },
+  "refused_zero_fund": {
+    "step": "fund with no value (refused)",
+    "commitment": "satisfied",
+    "function": "fund_condition",
+    "caller": "creator",
+    "tx": "0x2cfd1917db8d136683f68f8148ce6b84f5b0371f99fcec7acf64a893a9ba09bd",
+    "value": 0,
+    "status": "ACCEPTED",
+    "consensus": "MAJORITY_AGREE",
+    "execution": "ERROR",
+    "refused": true,
+    "refusal": "[EXPECTED] funding must equal the bounty terms exactly: required 10000000000000000, received 0"
+  },
+  "returned_deposits": {
+    "count": 2,
+    "offset": 0,
+    "rows": [
+      {
+        "amount": 9999999999999999,
+        "condition_id": "SL-000001",
+        "index": 1,
+        "reason": "funding must equal the bounty terms exactly: required 10000000000000000, received 9999999999999999",
+        "returned_at": 1789421539,
+        "sender": "0xd5c21d4e5f279ae407071f36d15245540dcc8f2c"
+      },
+      {
+        "amount": 10000000000000000,
+        "condition_id": "SL-000001",
+        "index": 2,
+        "reason": "only the creator may do this",
+        "returned_at": 1789421550,
+        "sender": "0x0c5331e4f504cb113cd4cad41d9ee381fbb9a128"
+      }
+    ],
+    "total": 2
+  },
+  "balances_after_returns": {
+    "third_party": {
+      "before": 1000000000000000000,
+      "after": 1000000000000000000
+    },
+    "creator": {
+      "before": 1000000000000000000,
+      "after": 1000000000000000000
+    },
+    "contract": 0
+  },
+  "refused_cancel_after_arm": {
+    "step": "cancel after ARM (refused)",
+    "commitment": "satisfied",
+    "function": "cancel_condition",
+    "caller": "creator",
+    "tx": "0x54e9b6ed83c0d798a59012ff4ed5c127350394217b47a9beddb5e4d325e85af1",
+    "value": 0,
+    "status": "ACCEPTED",
+    "consensus": "MAJORITY_AGREE",
+    "execution": "ERROR",
+    "refused": true,
+    "refusal": "[EXPECTED] illegal transition from ARMED; expected one of ['DRAFT', 'FUNDED']"
+  },
+  "refused_early_observation": {
+    "step": "observe before the window (refused)",
+    "commitment": "satisfied",
+    "function": "observe_condition",
+    "caller": "third_party",
+    "tx": "0x78130f469c27cd184dc8814e5ab9e70cd217638fc73f70a314b0d350fd23a5be",
+    "value": 0,
+    "status": "ACCEPTED",
+    "consensus": "MAJORITY_AGREE",
+    "execution": "ERROR",
+    "refused": true,
+    "refusal": "[EXPECTED] observation window opens at 1789422968 (transaction time 1789421695)"
+  },
+  "protocol_appeal": {
+    "tx": "0x356b194d75eb1f601f1a69bb1b2910e2761027954f217e54acb6d14c4e59b631",
+    "contract": "0x607f001703eFF601a812Df5DaF67bA317879D0D0",
+    "status_before": "ACCEPTED",
+    "probe_code_bytes_before": 56944,
+    "appeal_submitted": true,
+    "status_after": "FINALIZED",
+    "rounds": [
+      "Accepted",
+      "Validator Appeal Successful",
+      "Accepted"
+    ],
+    "final_execution": "ERROR",
+    "final_result_text": "invalid_contract absent_runner_comment",
+    "probe_code_bytes_after": "unreadable: gen_getContractCode: {'code': -32602, 'message': 'Contract not deployed'}",
+    "main_code_bytes_after": 56944
+  },
+  "refused_settle_before_final": {
+    "step": "settle while ACCEPTED (refused)",
+    "commitment": "satisfied",
+    "function": "settle_condition",
+    "caller": "third_party",
+    "tx": "0xb146c1cbbbbf660958c6c4e81e00f111a8420a972467acacfc0d411473e4ba5b",
+    "value": 0,
+    "status": "ACCEPTED",
+    "consensus": "MAJORITY_AGREE",
+    "execution": "ERROR",
+    "refused": true,
+    "refusal": "[EXPECTED] illegal transition from ACCEPTED; expected one of ['FINALIZED']"
+  },
+  "refused_finalize_early": {
+    "step": "finalize before the delay (refused)",
+    "commitment": "satisfied",
+    "function": "finalize_condition",
+    "caller": "third_party",
+    "tx": "0x3ee58d2f2b31db3d87fc43e193a65da6c6dc9f2217ce95f76a03f89201df3cad",
+    "value": 0,
+    "status": "ACCEPTED",
+    "consensus": "MAJORITY_AGREE",
+    "execution": "ERROR",
+    "refused": true,
+    "refusal": "[EXPECTED] result can be finalized from 1789423619 (transaction time 1789423397)"
+  },
+  "balances": {
+    "before": {
+      "creator": 960000000000000000,
+      "beneficiary": 1000000000000000000,
+      "contract": 30000000000000000
+    },
+    "after": {
+      "creator": 980000000000000000,
+      "beneficiary": 1010000000000000000,
+      "contract": 0
+    },
+    "delta": {
+      "creator": 20000000000000000,
+      "beneficiary": 10000000000000000,
+      "contract": -30000000000000000
+    }
+  },
+  "refused_second_settlement": {
+    "step": "settle a second time (refused)",
+    "commitment": "satisfied",
+    "function": "settle_condition",
+    "caller": "third_party",
+    "tx": "0x3082b0e17e41326108968647c1bdb96e4271e3416a6d44a3fbd20d19507fe8cd",
+    "value": 0,
+    "status": "ACCEPTED",
+    "consensus": "MAJORITY_AGREE",
+    "execution": "ERROR",
+    "refused": true,
+    "refusal": "[EXPECTED] illegal transition from SETTLED; expected one of ['FINALIZED']"
+  },
+  "finished_at": "2026-09-14T22:16:45Z"
+}
