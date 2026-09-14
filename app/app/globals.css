@@ -1,0 +1,124 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * STATELOCK palette (build prompt §32). One dark system: institutional,
+ * technical, hairline borders instead of shadows, square 2px corners,
+ * orange spent only on actions and the active state. Semantic colours are
+ * reserved for results: green satisfied / finalized, red not satisfied,
+ * amber undetermined and warnings.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-martian), ui-monospace, monospace;
+  --font-heading: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+
+  --color-ink: #050505;
+  --color-well: #0d0d0d;
+  --color-surface: #141414;
+  --color-line: #262626;
+  --color-text: #ffffff;
+  --color-dim: #a3a3a3;
+  --color-signal: #ff6b00;
+  --color-signal-hover: #ff8533;
+  --color-yes: #3ecf7a;
+  --color-no: #f0524b;
+  --color-maybe: #f2b233;
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: 2px;
+  --radius-md: 2px;
+  --radius-lg: 2px;
+  --radius-xl: 3px;
+  --radius-2xl: 4px;
+  --radius-3xl: 4px;
+  --radius-4xl: 4px;
+}
+
+:root {
+  --radius: 2px;
+  --background: #050505;
+  --foreground: #ffffff;
+  --card: #141414;
+  --card-foreground: #ffffff;
+  --popover: #141414;
+  --popover-foreground: #ffffff;
+  --primary: #ff6b00;
+  --primary-foreground: #050505;
+  --secondary: #0d0d0d;
+  --secondary-foreground: #ffffff;
+  --muted: #0d0d0d;
+  --muted-foreground: #a3a3a3;
+  --accent: #141414;
+  --accent-foreground: #ffffff;
+  --destructive: #f0524b;
+  --border: #262626;
+  --input: #262626;
+  --ring: #ff6b00;
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    background: #050505;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "ss01", "tnum";
+  }
+  ::selection {
+    background: #ff6b00;
+    color: #050505;
+  }
+  :focus-visible {
+    outline: 2px solid #ff6b00;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  /* the measuring grid behind the landing hero */
+  .grid-rule {
+    background-image:
+      linear-gradient(to right, #262626 1px, transparent 1px),
+      linear-gradient(to bottom, #262626 1px, transparent 1px);
+    background-size: 64px 64px;
+    mask-image: radial-gradient(ellipse at 30% 40%, #000 20%, transparent 75%);
+  }
+  .tag {
+    @apply font-mono text-[10px] tracking-[0.14em] uppercase text-dim;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

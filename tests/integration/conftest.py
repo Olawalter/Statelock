@@ -16,9 +16,15 @@ suite can assert them (build prompt §54):
     UNDETERMINED   the only allowed source does not exist (HTTP 404)
 
 The phases run lazily and in order from one shared `world`, so each test file
-asserts its own stage whatever order pytest runs them in. Every transaction —
+asserts its own stage whatever order pytest runs them in. A phase that fails
+fails every test that needs it, once; it is never re-run. Every transaction —
 hash, protocol status, consensus result, votes, execution result, and the
 contract's own refusal text — is written to docs/live-e2e.json.
+
+The protocol appeal is filed against an observation on a SECOND, disposable
+STATELOCK deployment, never the one holding the lifecycle's bounties: on
+StudioNet an appeal of an accepted transaction was observed to erase the
+contract being appealed (see docs/E2E.md, "Appeals on StudioNet").
 """
 import base64
 import json
@@ -173,15 +179,26 @@ class Live:
             self.address = existing
             self.record["deployment"] = {"address": existing, "reused": True}
         else:
-            code = CONTRACT.read_bytes().replace(b"\r\n", b"\n")
-            c = self.client(self.creator)
-            tx = c.deploy_contract(code=code)
-            receipt = self.wait(c, tx, "ACCEPTED")
-            self.address = (receipt.get("data") or {}).get("contract_address")
-            self.record["deployment"] = {"address": self.address, "tx": _hex(tx),
-                                         "consensus": receipt.get("result_name")}
+            self.address, self.record["deployment"] = self._deploy()
         self.await_(lambda: self.read("get_protocol_info") is not None, "deployment")
         self.record["contract"] = self.address
+        # a disposable second deployment, the only contract a protocol appeal is ever filed on
+        self.probe, self.record["appeal_probe_deployment"] = self._deploy()
+        self.await_(lambda: self.read("get_protocol_info", address=self.probe) is not None, "probe deployment")
+
+    def _deploy(self):
+        code = CONTRACT.read_bytes().replace(b"\r\n", b"\n")
+        c = self.client(self.creator)
+        tx = c.deploy_contract(code=code)
+        receipt = self.wait(c, tx, "ACCEPTED")
+        address = (receipt.get("data") or {}).get("contract_address")
+        return address, {"address": address, "tx": _hex(tx), "consensus": receipt.get("result_name")}
+
+    def code_bytes(self, address):
+        try:
+            return len(base64.b64decode(rpc("gen_getContractCode", [address])))
+        except Exception as e:
+            return f"unreadable: {str(e)[:120]}"
 
     # ── plumbing ──
     def client(self, acct):
@@ -211,8 +228,8 @@ class Live:
     def balance(self, address) -> int:
         return int(self.reader.get_balance(address))
 
-    def read(self, fn, *args):
-        return self.reader.read_contract(address=self.address, function_name=fn, args=list(args))
+    def read(self, fn, *args, address=None):
+        return self.reader.read_contract(address=address or self.address, function_name=fn, args=list(args))
 
     def tx_facts(self, tx_hash) -> dict:
         t = rpc("eth_getTransactionByHash", [tx_hash]) or {}
@@ -221,9 +238,9 @@ class Live:
                 "appealed": t.get("appealed"), "votes": sorted(votes.values()) if isinstance(votes, dict) else votes,
                 "created_timestamp": t.get("created_timestamp")}
 
-    def write(self, acct, fn, *args, value=0, wait="ACCEPTED", step=None, commitment=None):
+    def write(self, acct, fn, *args, value=0, wait="ACCEPTED", step=None, commitment=None, address=None):
         c = self.client(acct)
-        tx = c.write_contract(address=self.address, function_name=fn, args=list(args), value=value)
+        tx = c.write_contract(address=address or self.address, function_name=fn, args=list(args), value=value)
         receipt = self.wait(c, tx, wait)
         leader = ((receipt.get("consensus_data") or {}).get("leader_receipt") or [{}])[0]
         result = leader.get("result") or {}
@@ -257,13 +274,22 @@ class World:
     def __init__(self, live: Live):
         self.live = live
         self.done = set()
+        self.failed = {}
         self.ids = {}
+        self.probe_id = None
         self.balances = {}
 
     def _once(self, name, fn):
+        if name in self.failed:
+            raise RuntimeError(f"phase {name} already failed: {self.failed[name]}")
         if name not in self.done:
             print(f"\nPHASE {name}")
-            fn()
+            try:
+                fn()
+            except Exception as e:
+                self.failed[name] = f"{type(e).__name__}: {str(e)[:300]}"
+                self.live.record.setdefault("failed_phases", {})[name] = self.failed[name]
+                raise
             self.done.add(name)
 
     # ── create ──
@@ -271,13 +297,15 @@ class World:
         def run():
             live = self.live
             now = int(time.time())
+            # ARM must precede the window: leave room for ~14 accepted transactions first
+            start = now + 1500
             specs = {
                 "satisfied": ("genlayer-js releases version 1.1.8", POLICY_SATISFIED,
-                              now + 600, now + 600 + 86400),
+                              start, start + 86400),
                 "not_satisfied": ("genlayer-js's latest stable release is version 99.0.0",
-                                  POLICY_NOT_SATISFIED, now + 600, now + 900),
+                                  POLICY_NOT_SATISFIED, start, start + 300),
                 "undetermined": ("genlayer-js releases version 99.0.0", POLICY_UNDETERMINED,
-                                 now + 600, now + 900),
+                                 start, start + 300),
             }
             refused = live.write(live.creator, "create_condition", "Starts in the past",
                                  json.dumps(POLICY_SATISFIED), now - 3600, now + 3600, BOUNTY,
@@ -293,6 +321,12 @@ class World:
                 self.ids[key] = cid
                 live.record["commitments"][key] = {"condition_id": cid, "text": text,
                                                    "observation_start": start, "deadline": deadline}
+            text, policy, pstart, pdeadline = specs["satisfied"]
+            live.write(live.creator, "create_condition", text, json.dumps(policy), pstart, pdeadline, BOUNTY,
+                       live.beneficiary.address, step="create_condition [appeal probe]",
+                       commitment="appeal_probe", address=live.probe)
+            self.probe_id = "SL-000001"
+            assert live.read("get_condition", self.probe_id, address=live.probe)["condition_text"] == text
         self._once("create", run)
         return self.ids
 
@@ -314,6 +348,10 @@ class World:
                            step=f"fund_condition [{key}]", commitment=key)
                 live.write(live.creator, "arm_condition", cid, step=f"arm_condition [{key}]",
                            commitment=key)
+            live.write(live.creator, "fund_condition", self.probe_id, value=BOUNTY,
+                       step="fund_condition [appeal probe]", commitment="appeal_probe", address=live.probe)
+            live.write(live.creator, "arm_condition", self.probe_id, step="arm_condition [appeal probe]",
+                       commitment="appeal_probe", address=live.probe)
             withdraw = live.write(live.creator, "cancel_condition", first,
                                   step="cancel after ARM (refused)", commitment="satisfied")
             live.record["refused_cancel_after_arm"] = withdraw
@@ -334,7 +372,9 @@ class World:
             obs = live.write(live.third, "observe_condition", self.ids["satisfied"],
                              step="observe_condition [satisfied] (within window)", commitment="satisfied")
             live.record["commitments"]["satisfied"]["observe_tx"] = obs["tx"]
-            self._appeal(obs["tx"])
+            probe = live.write(live.third, "observe_condition", self.probe_id, address=live.probe,
+                               step="observe_condition [appeal probe]", commitment="appeal_probe")
+            self._appeal(probe["tx"])
 
             deadline = live.record["commitments"]["not_satisfied"]["deadline"]
             live.sleep_until(deadline, why="for the short deadlines to pass")
@@ -352,13 +392,14 @@ class World:
         self._once("observe", run)
         return self.ids
 
-    # ── protocol appeal on one accepted observation ──
+    # ── protocol appeal on one accepted observation (disposable deployment) ──
     def _appeal(self, tx):
-        """File a GenLayer protocol appeal on the observation while its finality
-        window is still open. The application implements no appeal of its own:
-        this exercises the protocol's."""
+        """File a GenLayer protocol appeal on the probe's observation while its
+        finality window is still open. The application implements no appeal of
+        its own: this exercises the protocol's."""
         live = self.live
-        outcome = {"tx": tx, "status_before": live.tx_facts(tx)["status"]}
+        outcome = {"tx": tx, "contract": live.probe, "status_before": live.tx_facts(tx)["status"],
+                   "probe_code_bytes_before": live.code_bytes(live.probe)}
         try:
             live.client(live.third).appeal_transaction(transaction_id=tx)
             outcome["appeal_submitted"] = True
@@ -370,7 +411,28 @@ class World:
 
     def appealed(self):
         self.observed()
-        return self.live.record.get("protocol_appeal", {})
+
+        def run():
+            live = self.live
+            appeal = live.record["protocol_appeal"]
+            tx = appeal["tx"]
+            live.await_(lambda: live.tx_facts(tx)["status"] == "FINALIZED", "appealed observation finality",
+                        tries=120, pause=10)
+            t = rpc("eth_getTransactionByHash", [tx]) or {}
+            leader = ((t.get("consensus_data") or {}).get("leader_receipt") or [{}])
+            leader = leader[0] if isinstance(leader, list) else leader
+            appeal.update({
+                "status_after": t.get("status"),
+                "rounds": [r.get("consensus_round") for r in
+                           (t.get("consensus_history") or {}).get("consensus_results", [])],
+                "final_execution": leader.get("execution_result"),
+                "final_result_text": _decode_payload(leader.get("result")) if leader.get("execution_result") != "SUCCESS" else "",
+                "probe_code_bytes_after": live.code_bytes(live.probe),
+                "main_code_bytes_after": live.code_bytes(live.address),
+            })
+            print(f"  appeal outcome: {appeal}")
+        self._once("appeal", run)
+        return self.live.record["protocol_appeal"]
 
     # ── finalize ──
     def finalized(self):

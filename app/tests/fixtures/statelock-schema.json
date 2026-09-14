@@ -1,0 +1,196 @@
+{
+ "ctor": {
+  "params": [],
+  "kwparams": {}
+ },
+ "methods": {
+  "arm_condition": {
+   "params": [
+    [
+     "condition_id",
+     "string"
+    ]
+   ],
+   "kwparams": {},
+   "readonly": false,
+   "ret": "null",
+   "payable": false
+  },
+  "cancel_condition": {
+   "params": [
+    [
+     "condition_id",
+     "string"
+    ]
+   ],
+   "kwparams": {},
+   "readonly": false,
+   "ret": "null",
+   "payable": false
+  },
+  "create_condition": {
+   "params": [
+    [
+     "condition_text",
+     "string"
+    ],
+    [
+     "policy_json",
+     "string"
+    ],
+    [
+     "observation_start",
+     "int"
+    ],
+    [
+     "deadline",
+     "int"
+    ],
+    [
+     "bounty_terms",
+     "int"
+    ],
+    [
+     "beneficiary",
+     "string"
+    ]
+   ],
+   "kwparams": {},
+   "readonly": false,
+   "ret": "string",
+   "payable": false
+  },
+  "finalize_condition": {
+   "params": [
+    [
+     "condition_id",
+     "string"
+    ]
+   ],
+   "kwparams": {},
+   "readonly": false,
+   "ret": "null",
+   "payable": false
+  },
+  "fund_condition": {
+   "params": [
+    [
+     "condition_id",
+     "string"
+    ]
+   ],
+   "kwparams": {},
+   "readonly": false,
+   "ret": "null",
+   "payable": true
+  },
+  "get_condition": {
+   "params": [
+    [
+     "condition_id",
+     "string"
+    ]
+   ],
+   "kwparams": {},
+   "readonly": true,
+   "ret": "dict"
+  },
+  "get_final_result": {
+   "params": [
+    [
+     "condition_id",
+     "string"
+    ]
+   ],
+   "kwparams": {},
+   "readonly": true,
+   "ret": "dict"
+  },
+  "get_observation": {
+   "params": [
+    [
+     "condition_id",
+     "string"
+    ]
+   ],
+   "kwparams": {},
+   "readonly": true,
+   "ret": "array"
+  },
+  "get_policy": {
+   "params": [
+    [
+     "condition_id",
+     "string"
+    ]
+   ],
+   "kwparams": {},
+   "readonly": true,
+   "ret": "dict"
+  },
+  "get_protocol_info": {
+   "params": [],
+   "kwparams": {},
+   "readonly": true,
+   "ret": "dict"
+  },
+  "list_conditions": {
+   "params": [
+    [
+     "offset",
+     "int"
+    ],
+    [
+     "limit",
+     "int"
+    ]
+   ],
+   "kwparams": {},
+   "readonly": true,
+   "ret": "dict"
+  },
+  "list_conditions_by_creator": {
+   "params": [
+    [
+     "creator",
+     "string"
+    ],
+    [
+     "offset",
+     "int"
+    ],
+    [
+     "limit",
+     "int"
+    ]
+   ],
+   "kwparams": {},
+   "readonly": true,
+   "ret": "dict"
+  },
+  "observe_condition": {
+   "params": [
+    [
+     "condition_id",
+     "string"
+    ]
+   ],
+   "kwparams": {},
+   "readonly": false,
+   "ret": "null",
+   "payable": false
+  },
+  "settle_condition": {
+   "params": [
+    [
+     "condition_id",
+     "string"
+    ]
+   ],
+   "kwparams": {},
+   "readonly": false,
+   "ret": "null",
+   "payable": false
+  }
+ }
+}
