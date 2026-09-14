@@ -1,0 +1,80 @@
+{
+  "network": "GenLayer StudioNet",
+  "chain_id": 61999,
+  "rpc": "https://studio.genlayer.com/api",
+  "explorer": "https://explorer-studio.genlayer.com/address/0x9e4Ae09e8584a79bdbFACf7CB2Dad05a51bACd9d",
+  "contract_address": "0x9e4Ae09e8584a79bdbFACf7CB2Dad05a51bACd9d",
+  "deploy_tx": "0x5055fad5ae2aa97d9299d8c64c28dd0c44c9e72a3dda8759af67b7b9ac158ca1",
+  "deploy_status": "FINALIZED",
+  "deploy_consensus": "MAJORITY_AGREE",
+  "source_commit": "bd51a0dd15b23550de317cbc69987615ad54e8d9",
+  "source_sha256": "a78ac0dbf7649db97bfb16204fb2773e5797781f4132c546bdd307aa90292093",
+  "source_bytes": 56944,
+  "onchain_sha256": "a78ac0dbf7649db97bfb16204fb2773e5797781f4132c546bdd307aa90292093",
+  "byte_identical": true,
+  "schema_methods": [
+    "arm_condition",
+    "cancel_condition",
+    "create_condition",
+    "finalize_condition",
+    "fund_condition",
+    "get_condition",
+    "get_final_result",
+    "get_observation",
+    "get_policy",
+    "get_protocol_info",
+    "get_returned_deposits",
+    "list_conditions",
+    "list_conditions_by_creator",
+    "observe_condition",
+    "settle_condition"
+  ],
+  "protocol_info": {
+    "condition_count": 0,
+    "consequence": {
+      "NOT_SATISFIED": "CREATOR",
+      "SATISFIED": "BENEFICIARY",
+      "UNDETERMINED": "CREATOR"
+    },
+    "failure_behavior": "UNDETERMINED_REFUNDS_CREATOR",
+    "limits": {
+      "finality_delay_seconds": 600,
+      "max_condition_text": 500,
+      "max_early_observations": 4,
+      "max_excerpt_chars": 6000,
+      "max_expected": 80,
+      "max_fact_description": 240,
+      "max_fact_name": 40,
+      "max_facts": 6,
+      "max_horizon_seconds": 31622400,
+      "max_instructions": 1000,
+      "max_policy_json": 6000,
+      "max_response_bytes": 1000000,
+      "max_source_label": 80,
+      "max_sources": 4,
+      "max_url": 300,
+      "observation_grace_seconds": 604800
+    },
+    "outcomes": [
+      "NOT_SATISFIED",
+      "SATISFIED",
+      "UNDETERMINED"
+    ],
+    "returned_deposit_count": 0,
+    "source_kinds": [
+      "OFFICIAL_ANNOUNCEMENT",
+      "OFFICIAL_API",
+      "OFFICIAL_DOCUMENTATION",
+      "OFFICIAL_REPOSITORY",
+      "OTHER",
+      "PUBLIC_REGISTRY"
+    ],
+    "temporal_rules": [
+      "EVENT_BY_DEADLINE"
+    ],
+    "time_source": "GenLayer transaction datetime (UTC Unix seconds)",
+    "total_locked": 0,
+    "version": "STATELOCK-1.0.0"
+  },
+  "deployed_at": "2026-09-14T21:34:14Z"
+}

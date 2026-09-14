@@ -13,14 +13,20 @@ repository or the frontend:
   condition  with --condition: the frozen terms, the policy, every
              observation record, and the final result / settlement
 """
-import argparse
-import base64
-import hashlib
-import json
 import pathlib
-import subprocess
 import sys
-import urllib.request
+
+# This file is named inspect.py, which would shadow the standard library's
+# `inspect` for every dependency imported below. Take its folder off the path.
+_HERE = pathlib.Path(__file__).resolve().parent
+sys.path[:] = [p for p in sys.path if pathlib.Path(p or ".").resolve() != _HERE]
+
+import argparse  # noqa: E402
+import base64  # noqa: E402
+import hashlib  # noqa: E402
+import json  # noqa: E402
+import subprocess  # noqa: E402
+import urllib.request  # noqa: E402
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 RPC = "https://studio.genlayer.com/api"
