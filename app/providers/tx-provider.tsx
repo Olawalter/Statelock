@@ -27,7 +27,7 @@ export type WriteRequest = {
   functionName: string;
   args: (string | number | bigint)[];
   value: bigint;
-  reconciled: () => Promise<boolean>;
+  reconciled: () => Promise<boolean | string>;
 };
 
 type TxContextValue = {

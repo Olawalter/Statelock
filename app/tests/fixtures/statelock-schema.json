@@ -81,7 +81,7 @@
    ],
    "kwparams": {},
    "readonly": false,
-   "ret": "null",
+   "ret": "string",
    "payable": true
   },
   "get_condition": {
@@ -130,6 +130,21 @@
   },
   "get_protocol_info": {
    "params": [],
+   "kwparams": {},
+   "readonly": true,
+   "ret": "dict"
+  },
+  "get_returned_deposits": {
+   "params": [
+    [
+     "offset",
+     "int"
+    ],
+    [
+     "limit",
+     "int"
+    ]
+   ],
    "kwparams": {},
    "readonly": true,
    "ret": "dict"

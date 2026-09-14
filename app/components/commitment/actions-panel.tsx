@@ -6,7 +6,7 @@ import { useConnection } from "wagmi";
 import { TxTracker } from "@/components/settlement/tx-tracker";
 import { Button } from "@/components/ui/button";
 import { useDeployment, useNetwork } from "@/components/wallet/network-status";
-import { reads, verbCall, type Condition, type Verb } from "@/lib/contracts/statelock";
+import { fundingOutcome, reads, verbCall, type Condition, type Verb } from "@/lib/contracts/statelock";
 import type { TxState } from "@/lib/genlayer/tx";
 import { formatDuration, formatGen, formatTime, sameAddress } from "@/lib/present";
 import { useStatelock } from "@/providers/app-providers";
@@ -152,11 +152,20 @@ export function ActionsPanel({ c }: { c: Condition }) {
 
   async function run(a: Action) {
     setActive({ verb: a.verb, effect: a.effect, state: { stage: "READY", reached: "READY", finality: "none" } });
+    let reconciled: () => Promise<boolean | string> = async () =>
+      a.reconciled(await reads.condition(client, config, c.condition_id));
+    if (a.verb === "fund" && address) {
+      try {
+        reconciled = await fundingOutcome(client, config, c.condition_id, address);
+      } catch {
+        /* fall back to the status check */
+      }
+    }
     const record = await send({
       title: `${a.label} · ${c.condition_id}`,
       effect: a.effect,
       ...verbCall(a.verb, c.condition_id, c.bounty_terms),
-      reconciled: async () => a.reconciled(await reads.condition(client, config, c.condition_id)),
+      reconciled,
     });
     setActive({ verb: a.verb, effect: a.effect, state: record.state });
   }

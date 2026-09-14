@@ -16,7 +16,7 @@ export function SiteHeader() {
   const path = usePathname();
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-ink/95 backdrop-blur-sm">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-6 px-4 sm:px-6">
+      <div className="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:gap-6 sm:px-6">
         <Link href="/" aria-label="STATELOCK home" className="shrink-0">
           <Wordmark />
         </Link>
@@ -28,7 +28,7 @@ export function SiteHeader() {
                 key={n.href}
                 href={n.href}
                 aria-current={active ? "page" : undefined}
-                className={`relative px-3 py-2 text-sm transition-colors ${
+                className={`relative px-2 py-2 text-sm transition-colors sm:px-3 ${
                   active ? "text-text" : "text-dim hover:text-text"
                 }`}
               >

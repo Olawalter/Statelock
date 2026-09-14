@@ -41,7 +41,13 @@ export function WalletButton() {
     <>
       <Button onClick={() => setOpen(true)} disabled={status === "connecting" || status === "reconnecting"}>
         <Wallet data-icon="inline-start" />
-        {status === "connecting" || status === "reconnecting" ? "Connecting…" : "Connect wallet"}
+        {status === "connecting" || status === "reconnecting" ? (
+          "Connecting…"
+        ) : (
+          <>
+            Connect<span className="hidden sm:inline">&nbsp;wallet</span>
+          </>
+        )}
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="border border-line bg-well sm:max-w-md">

@@ -80,6 +80,15 @@ describe("the write lifecycle never reports success early", () => {
     expect(final.message).toMatch(/not caught up/);
   });
 
+  it("a deposit the contract sent back is FAILED with its reason, not success", async () => {
+    const client = fakeClient(["ACCEPTED"], { execution_result: "SUCCESS" });
+    const sentence = "The contract did not accept this deposit and sent it straight back to your wallet. Only the creator may do this.";
+    const { final, stages } = await run(client, async () => sentence);
+    expect(stages).not.toContain("CONTRACT_STATE_UPDATED");
+    expect(final.stage).toBe("FAILED");
+    expect(final.message).toBe(sentence);
+  });
+
   it("no majority is FAILED, not success", async () => {
     const client = fakeClient(["UNDETERMINED"], { execution_result: "SUCCESS" });
     const { final } = await run(client, async () => true);

@@ -49,6 +49,7 @@ export const REQUIRED_METHODS = {
   get_final_result: ["condition_id"],
   list_conditions: ["offset", "limit"],
   list_conditions_by_creator: ["creator", "offset", "limit"],
+  get_returned_deposits: ["offset", "limit"],
 } as const;
 
 const int = z.number().int();
@@ -176,6 +177,23 @@ export const protocolSchema = z.object({
 });
 export type ProtocolInfo = z.infer<typeof protocolSchema>;
 
+export const returnedPageSchema = z.object({
+  total: int,
+  offset: int,
+  count: int,
+  rows: z.array(
+    z.object({
+      index: int,
+      condition_id: z.string(),
+      sender: z.string(),
+      amount: amount,
+      reason: z.string(),
+      returned_at: int,
+    }),
+  ),
+});
+export type ReturnedDeposits = z.infer<typeof returnedPageSchema>;
+
 // ── reads ───────────────────────────────────────────────────────────────────
 
 async function view<T>(client: GenLayerClient, config: AppConfig, fn: string, args: (string | number)[], schema: z.ZodType<T>) {
@@ -198,7 +216,30 @@ export const reads = {
     view(c, cfg, "list_conditions", [offset, limit], pageSchema),
   byCreator: (c: GenLayerClient, cfg: AppConfig, creator: string, offset: number, limit: number) =>
     view(c, cfg, "list_conditions_by_creator", [creator.toLowerCase(), offset, limit], pageSchema),
+  returned: (c: GenLayerClient, cfg: AppConfig, offset: number, limit: number) =>
+    view(c, cfg, "get_returned_deposits", [offset, limit], returnedPageSchema),
 };
+
+/**
+ * How a funding write is confirmed. The contract never keeps a deposit it
+ * cannot use: it sends it straight back in the same transaction and records
+ * why. So "done" is the condition showing FUNDED, and "declined" is a new
+ * returned-deposit record from this sender for this condition.
+ */
+export async function fundingOutcome(c: GenLayerClient, cfg: AppConfig, conditionId: string, sender: string) {
+  const before = (await reads.returned(c, cfg, 0, 1)).total;
+  return async (): Promise<boolean | string> => {
+    const page = await reads.returned(c, cfg, before, 50);
+    const mine = page.rows.find(
+      (r) => r.sender.toLowerCase() === sender.toLowerCase() && r.condition_id === conditionId,
+    );
+    if (mine) {
+      const reason = mine.reason.charAt(0).toUpperCase() + mine.reason.slice(1);
+      return `The contract did not accept this deposit and sent it straight back to your wallet. ${reason}.`;
+    }
+    return (await reads.condition(c, cfg, conditionId)).status === "FUNDED";
+  };
+}
 
 /** Every condition, newest first, in pages of the contract's maximum. */
 export async function listAll(c: GenLayerClient, cfg: AppConfig, creator?: string): Promise<Condition[]> {

@@ -9,7 +9,7 @@ import { Field, SelectInput, TextArea, TextInput } from "@/components/commitment
 import { TxTracker } from "@/components/settlement/tx-tracker";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { useDeployment, useNetwork } from "@/components/wallet/network-status";
-import { createCall, reads, SOURCE_KINDS, verbCall, type Condition } from "@/lib/contracts/statelock";
+import { createCall, fundingOutcome, reads, SOURCE_KINDS, verbCall, type Condition } from "@/lib/contracts/statelock";
 import { initialTx, type TxState } from "@/lib/genlayer/tx";
 import {
   consequenceLabel,
@@ -132,14 +132,17 @@ export default function CreatePage() {
   }
 
   async function doFund() {
-    if (!created) return;
+    if (!created || !address) return;
     const id = created.condition_id;
     setTx({ label: "Fund", state: initialTx });
+    const reconciled = await fundingOutcome(client, config, id, address).catch(
+      () => async () => (await reads.condition(client, config, id)).status === "FUNDED",
+    );
     const record = await send({
       title: `Fund ${id}`,
       effect: `${formatGen(created.bounty_terms)} is deposited and held by the contract.`,
       ...verbCall("fund", id, created.bounty_terms),
-      reconciled: async () => (await reads.condition(client, config, id)).status === "FUNDED",
+      reconciled,
     });
     if (record.state.stage === "CONTRACT_STATE_UPDATED") setFunded(true);
     setTx({ label: "Fund", state: record.state });

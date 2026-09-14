@@ -142,8 +142,12 @@ export type RunOptions = {
   functionName: string;
   args: (string | number | bigint)[];
   value: bigint;
-  /** Resolves true once the contract's own view reflects the write. */
-  reconciled: () => Promise<boolean>;
+  /**
+   * Resolves true once the contract's own view reflects the write, or a
+   * sentence when the contract's views show it declined the write without
+   * refusing the transaction (a returned deposit).
+   */
+  reconciled: () => Promise<boolean | string>;
   onUpdate: (s: TxState) => void;
   /** A fresh read-only client for polling; defaults to one built from config. */
   poller?: GenLayerClient;
@@ -218,11 +222,14 @@ export async function runWrite(o: RunOptions): Promise<TxState> {
   // the contract's own state
   let updated = false;
   for (let i = 0; i < 30 && !updated; i++) {
+    let outcome: boolean | string = false;
     try {
-      updated = await o.reconciled();
+      outcome = await o.reconciled();
     } catch {
-      updated = false;
+      outcome = false;
     }
+    if (typeof outcome === "string") return fail(outcome);
+    updated = outcome;
     if (!updated) await sleep(pollMs);
   }
   if (!updated) {

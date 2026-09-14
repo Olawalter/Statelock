@@ -13,7 +13,7 @@ export function Wordmark() {
   return (
     <span className="flex items-center gap-2.5">
       <LogoMark />
-      <span className="text-[15px] font-semibold tracking-[0.18em]" style={{ fontStretch: "118%" }}>
+      <span className="hidden text-[15px] font-semibold tracking-[0.18em] sm:inline" style={{ fontStretch: "118%" }}>
         STATELOCK
       </span>
     </span>
