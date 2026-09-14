@@ -1,7 +1,7 @@
 """Live integration harness: GenLayer StudioNet, real validators, real web, real GEN.
 
-    SKIP_INTEGRATION=0 gltest tests/integration -v -s
-    (equivalently: SKIP_INTEGRATION=0 pytest tests/integration -v -s)
+    SKIP_INTEGRATION=0 pytest tests/integration -v -s
+    (the gltest wrapper collects the same tests: SKIP_INTEGRATION=0 gltest tests/integration -v -s)
 
 No keys are needed. The harness creates throwaway creator, beneficiary and
 third-party accounts, funds them from the StudioNet faucet, deploys
