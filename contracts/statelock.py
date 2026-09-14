@@ -73,12 +73,17 @@ V_NOT_SATISFIED = "NOT_SATISFIED"
 V_UNDETERMINED = "UNDETERMINED"
 VERDICTS = {V_SATISFIED, V_NOT_SATISFIED, V_UNDETERMINED}
 
-# Per-fact findings, as derived by code from the model's reading.
+# What a model reader may report per fact.
 F_CONFIRMED = "CONFIRMED"
 F_CONTRADICTED = "CONTRADICTED"
 F_NOT_FOUND = "NOT_FOUND"
-F_CONFLICTING = "CONFLICTING"
 MODEL_FACT_STATUSES = {F_CONFIRMED, F_CONTRADICTED, F_NOT_FOUND}
+# What the contract stores per fact. A reading that a fact is contradicted and
+# a reading that it is simply not shown lead to the same result in every case,
+# so they are stored — and compared — as one status: validators must agree on
+# what has a consequence, not on shadings of it.
+F_NOT_CONFIRMED = "NOT_CONFIRMED"
+F_CONFLICTING = "CONFLICTING"
 
 T_BEFORE_DEADLINE = "BEFORE_DEADLINE"
 T_AFTER_DEADLINE = "AFTER_DEADLINE"
@@ -86,8 +91,7 @@ T_UNKNOWN = "UNKNOWN"
 T_NOT_APPLICABLE = "NOT_APPLICABLE"
 
 R_FACTS_CONFIRMED = "REQUIRED_FACTS_CONFIRMED"
-R_FACT_CONTRADICTED = "FACT_CONTRADICTED"
-R_FACT_NOT_FOUND = "FACT_NOT_FOUND"
+R_FACT_NOT_CONFIRMED = "REQUIRED_FACT_NOT_CONFIRMED"
 R_EVENT_AFTER_DEADLINE = "EVENT_AFTER_DEADLINE"
 R_EVENT_TIME_UNKNOWN = "EVENT_TIME_UNKNOWN"
 R_SOURCES_CONFLICT = "SOURCES_CONFLICT"
@@ -489,7 +493,7 @@ def _derive(policy: dict, raw_findings, readable_ids: list, observed_at: int,
                 "sources_readable": sorted(readable)}
 
     if not readable:
-        facts = [{"name": f["name"], "status": F_NOT_FOUND, "value": "", "independent": False}
+        facts = [{"name": f["name"], "status": F_NOT_CONFIRMED, "value": "", "independent": None}
                  for f in facts_spec]
         return result(V_UNDETERMINED, R_SOURCES_UNAVAILABLE, T_NOT_APPLICABLE, facts)
 
@@ -535,7 +539,12 @@ def _derive(policy: dict, raw_findings, readable_ids: list, observed_at: int,
         if status == F_CONFIRMED and f["expected"] and value != _normalize_value(f["expected"]):
             status = F_CONTRADICTED
 
-        independent = status == F_CONFIRMED and len({host_of[i] for i in supporting}) >= 2
+        if status in (F_CONTRADICTED, F_NOT_FOUND):
+            status = F_NOT_CONFIRMED
+        # Independence is evaluated — and so stored and compared — only when the
+        # policy requires it; otherwise it has no consequence and is null.
+        independent = (status == F_CONFIRMED and len({host_of[i] for i in supporting}) >= 2) \
+            if policy["require_independent_sources"] else None
         stored_value = _normalize_value(f["expected"]) if (status == F_CONFIRMED and f["expected"]) else ""
         derived.append({"name": f["name"], "status": status, "value": stored_value,
                         "independent": independent})
@@ -554,7 +563,7 @@ def _derive(policy: dict, raw_findings, readable_ids: list, observed_at: int,
         return result(V_UNDETERMINED, R_SOURCES_CONFLICT, T_NOT_APPLICABLE, derived)
 
     if all(s == F_CONFIRMED for s in statuses):
-        if policy["require_independent_sources"] and not all(d["independent"] for d in derived):
+        if policy["require_independent_sources"] and not all(d["independent"] is True for d in derived):
             return result(V_UNDETERMINED, R_INDEPENDENCE_NOT_MET, T_NOT_APPLICABLE, derived)
         if not all_readable:
             return result(V_UNDETERMINED, R_SOURCES_UNAVAILABLE, T_NOT_APPLICABLE, derived)
@@ -570,9 +579,7 @@ def _derive(policy: dict, raw_findings, readable_ids: list, observed_at: int,
 
     if not all_readable:
         return result(V_UNDETERMINED, R_SOURCES_UNAVAILABLE, T_NOT_APPLICABLE, derived)
-    if F_CONTRADICTED in statuses:
-        return result(V_NOT_SATISFIED, R_FACT_CONTRADICTED, T_NOT_APPLICABLE, derived)
-    return result(V_NOT_SATISFIED, R_FACT_NOT_FOUND, T_NOT_APPLICABLE, derived)
+    return result(V_NOT_SATISFIED, R_FACT_NOT_CONFIRMED, T_NOT_APPLICABLE, derived)
 
 
 def _fingerprint(res: dict) -> str:

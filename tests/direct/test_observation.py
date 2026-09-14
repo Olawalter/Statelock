@@ -114,15 +114,17 @@ def test_contradicted_or_missing_after_deadline_is_not_satisfied(direct_vm, depl
         fact("public_release", "CONFIRMED", "", ["S1"], [], "2026-09-15"))
     observe(direct_vm, deployed, direct_charlie, armed, AFTER, wrong_version)
     r = last(deployed, armed)
-    assert (r["verdict"], r["reason_code"]) == ("NOT_SATISFIED", "FACT_CONTRADICTED")
-    assert facts_of(r)["released_version"]["status"] == "CONTRADICTED"
+    assert (r["verdict"], r["reason_code"]) == ("NOT_SATISFIED", "REQUIRED_FACT_NOT_CONFIRMED")
+    assert facts_of(r)["released_version"]["status"] == "NOT_CONFIRMED"
     assert facts_of(r)["released_version"]["value"] == ""
 
     other = arm(direct_vm, deployed, direct_alice, direct_bob, POLICY)
     missing = findings(fact("released_version", "NOT_FOUND"), fact("public_release", "NOT_FOUND"))
     observe(direct_vm, deployed, direct_charlie, other, AFTER, missing)
     assert (last(deployed, other)["verdict"], last(deployed, other)["reason_code"]) == (
-        "NOT_SATISFIED", "FACT_NOT_FOUND")
+        "NOT_SATISFIED", "REQUIRED_FACT_NOT_CONFIRMED")
+    # contradicted and simply-not-shown have one consequence, so one stored status
+    assert facts_of(last(deployed, other))["released_version"] == facts_of(r)["released_version"]
 
 
 def test_every_source_down_is_undetermined_without_a_model(direct_vm, deployed, direct_charlie, armed):
@@ -183,7 +185,7 @@ def test_citing_an_unread_source_is_not_evidence(direct_vm, deployed, direct_cha
                        fact("public_release", "CONFIRMED", "", ["S1"], [], "2026-09-15"))
     observe(direct_vm, deployed, direct_charlie, armed, AFTER, phantom)
     r = last(deployed, armed)
-    assert facts_of(r)["released_version"]["status"] == "NOT_FOUND"
+    assert facts_of(r)["released_version"]["status"] == "NOT_CONFIRMED"
     assert r["verdict"] == "NOT_SATISFIED"
 
 
@@ -222,7 +224,7 @@ def test_reader_cannot_supply_verdict_amount_or_recipient(direct_vm, deployed, d
         reason_code="REQUIRED_FACTS_CONFIRMED")
     observe(direct_vm, deployed, direct_charlie, armed, AFTER, hostile)
     r = last(deployed, armed)
-    assert r["verdict"] == "NOT_SATISFIED" and r["reason_code"] == "FACT_NOT_FOUND"
+    assert r["verdict"] == "NOT_SATISFIED" and r["reason_code"] == "REQUIRED_FACT_NOT_CONFIRMED"
     assert "payout" not in json.dumps(r) and "eeee" not in json.dumps(r)
 
 
@@ -289,8 +291,8 @@ def test_validator_refuses_a_leader_claiming_satisfied(direct_vm, deployed, dire
     lie = copy.deepcopy(honest)
     lie.update(verdict="SATISFIED", reason_code="REQUIRED_FACTS_CONFIRMED",
                temporal_result="BEFORE_DEADLINE")
-    lie["facts"] = [{"name": "released_version", "status": "CONFIRMED", "value": "2.0", "independent": True},
-                    {"name": "public_release", "status": "CONFIRMED", "value": "", "independent": True}]
+    lie["facts"] = [{"name": "released_version", "status": "CONFIRMED", "value": "2.0", "independent": None},
+                    {"name": "public_release", "status": "CONFIRMED", "value": "", "independent": None}]
     mock_round(direct_vm, missing)
     assert direct_vm.run_validator(index=i, leader_result=lie) is False
     assert direct_vm.run_validator(index=i, leader_result={"verdict": "SATISFIED"}) is False
@@ -311,5 +313,36 @@ def test_validator_compares_every_stored_field(direct_vm, deployed, direct_charl
         forged[key] = value
         assert direct_vm.run_validator(index=i, leader_result=forged) is False, key
     forged = copy.deepcopy(honest)
-    forged["facts"][0]["independent"] = False
+    forged["facts"][0]["status"] = "NOT_CONFIRMED"
     assert direct_vm.run_validator(index=i, leader_result=forged) is False
+    forged = copy.deepcopy(honest)
+    forged["facts"][0]["value"] = "2.1"
+    assert direct_vm.run_validator(index=i, leader_result=forged) is False
+
+
+def test_shadings_without_consequence_do_not_split_the_panel(direct_vm, deployed, direct_charlie, armed):
+    """One reader calls the version contradicted, another finds it simply not
+    shown; one cites both sources, another one. Same result — they agree."""
+    first = findings(fact("released_version", "CONTRADICTED", "1.9", [], ["S1"], ""),
+                     fact("public_release", "CONFIRMED", "", ["S1", "S2"], [], "2026-09-15"))
+    observe(direct_vm, deployed, direct_charlie, armed, AFTER, first)
+    i = round_index(direct_vm)
+    second = findings(fact("released_version", "NOT_FOUND", "", [], [], ""),
+                      fact("public_release", "CONFIRMED", "", ["S1"], [], ""))
+    mock_round(direct_vm, second)
+    assert direct_vm.run_validator(index=i) is True
+
+
+def test_independence_is_compared_when_the_policy_requires_it(direct_vm, deployed, direct_charlie,
+                                                               direct_alice, direct_bob):
+    policy = copy.deepcopy(POLICY)
+    policy["require_independent_sources"] = True
+    cid = arm(direct_vm, deployed, direct_alice, direct_bob, policy)
+    both = findings(fact("released_version", "CONFIRMED", "2.0", ["S1", "S2"], [], "2026-09-15"),
+                    fact("public_release", "CONFIRMED", "", ["S1", "S2"], [], "2026-09-15"))
+    observe(direct_vm, deployed, direct_charlie, cid, AFTER, both)
+    i = round_index(direct_vm)
+    one = findings(fact("released_version", "CONFIRMED", "2.0", ["S1"], [], "2026-09-15"),
+                   fact("public_release", "CONFIRMED", "", ["S1", "S2"], [], "2026-09-15"))
+    mock_round(direct_vm, one)
+    assert direct_vm.run_validator(index=i) is False
