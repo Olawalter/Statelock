@@ -269,6 +269,11 @@ app mutation sweep            12/12 guards broken on purpose, all caught
 app: npm run build            succeeds
 ```
 
+GitHub Actions ([ci.yml](.github/workflows/ci.yml)) runs the contract job (runner bundle,
+`genvm-lint`, direct tests) and the app job (typecheck, lint, tests, build) on every push.
+The live StudioNet suite runs there only when started by hand (**Run workflow** with
+*integration* ticked) and cannot fail the workflow.
+
 The direct suite runs on GenLayer's official direct mode: web responses
 and model answers are mocked with its own mechanisms, transaction time is
 moved only with `direct_vm.warp()`, and — by replaying the contract's
