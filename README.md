@@ -1,74 +1,75 @@
-<p align="center"><img src="app/app/icon.svg" width="120" alt="STATELOCK"/></p>
+# STATELOCK
 
-# STATELOCK - Conditional Reality Verification
+> Conditional reality verification on GenLayer: precommit a real-world
+> condition, freeze the sources and facts that may prove it, lock a bounty
+> against a fixed consequence, and let validator consensus decide from the
+> live web whether reality satisfied it — then settle exactly once, after
+> finality.
 
-**Lock the condition. Let reality decide.**
+**Lock the condition. Let reality decide.** One Intelligent Contract and a
+static web app. No backend, no admin, no oracle, no server-side key.
 
-A creator precommits a real-world condition, freezes the sources and facts that may prove it,
-sets a deadline, and locks a bounty with a fixed consequence. GenLayer validators then read
-those sources from the live web, and each must agree on what they show. Contract code — not a
-model, not an operator — turns their findings into Satisfied, Not satisfied or Undetermined, and
-settles the exact bounty once the result is final.
+---
 
-Deployment of record: [`0x9e4Ae09e8584a79bdbFACf7CB2Dad05a51bACd9d`](https://explorer-studio.genlayer.com/address/0x9e4Ae09e8584a79bdbFACf7CB2Dad05a51bACd9d)
-on GenLayer StudioNet, byte-identical to `contracts/statelock.py` (see [`docs/deployment.json`](docs/deployment.json)).
+## The problem
 
-## What it is
+A deterministic contract enforces this perfectly:
 
-- **A precommitment.** The condition, allowed sources, required facts, observation window,
-  bounty and beneficiary are recorded at creation and frozen at ARM. Nothing can change after.
-- **An exact escrow.** The bounty is the transaction value and must equal the terms. A wrong
-  deposit is sent straight back in the same transaction.
-- **An adjudication from the live web.** Only the frozen sources are fetched; evidence is
-  fenced, bounded, untrusted data.
-- **A verdict derived in code.** Validators report per-fact findings; `_derive` applies fixed
-  rules, including every temporal and source-failure case.
-- **A fixed consequence.** Satisfied pays the beneficiary. Not satisfied and Undetermined
-  refund the creator. Exactly once, after finality, by anyone.
+```python
+if timestamp > deadline:
+    transfer(creator)
+```
 
-There is no backend, no admin, no marketplace, and no server-side key.
+It cannot establish this at all:
 
-## Why GenLayer is required
+> Did genlayer-js publish version 1.1.8 as a public release before the
+> deadline, according to its GitHub release record and the npm registry?
 
-"Did this happen by the deadline, according to these sources?" has no deterministic on-chain
-answer: someone has to read live pages and interpret them. Anywhere else that reader is a
-trusted party — an oracle operator, a backend, a model API key. On GenLayer the leader and every
-validator read the sources independently, the result stands only if they agree, and the
-protocol's own appeal and finality rules apply. The contract can hold GEN against the outcome
-without trusting any single reader, including whoever runs this site.
+Conditional commitments — bounties on shipped releases, grants on
+published results, bets on public facts — all hinge on a question like
+that. Today someone answers it: an oracle operator, a platform, a backend
+holding a model API key. Whoever answers controls the money.
 
-## How it works
+## The design
 
-### For a creator
+STATELOCK splits the question from the consequence and gives each to the
+layer that can actually handle it.
 
-1. **Define** the condition as a statement that is true or not by a deadline.
-2. **Choose the evidence**: up to four https sources and up to six required facts, optionally
-   requiring independent confirmation from different sites.
-3. **Set the window** (it must open after ARM) and the deadline.
-4. **Lock the consequence**: the bounty and the beneficiary. Review the immutable terms.
-5. **Create, fund, ARM** — three wallet transactions. After ARM nothing can be changed or withdrawn.
+```
+      GenLayer validator consensus              Deterministic contract code
+      reports FACTS                             decides EVERYTHING ELSE
 
-### For anyone
+      per required fact: confirmed /            the verdict, from fixed rules
+        contradicted / not found                which sources count (frozen)
+      the value each source shows               the deadline and the window
+      which sources support it                  who is paid, how much, when
+      when the event happened                   finality gate, exactly-once settlement
+```
 
-1. **Observe** once the window opens. GenLayer reads the sources and records a consensus observation.
-2. **Finalize** 10 minutes after a conclusive result (or as Undetermined if nobody observed
-   within 7 days after the deadline).
-3. **Settle**. The destination and amount are fixed by the contract; the caller chooses nothing.
+The model is **never allowed to name an outcome, an amount or a
+recipient**. It returns per-fact findings; `_derive` turns them into
+SATISFIED, NOT_SATISFIED or UNDETERMINED under the frozen policy, and the
+consequence is a constant:
 
-## Outcomes
+| Verdict | Consequence |
+|---|---|
+| SATISFIED | the exact bounty to the beneficiary |
+| NOT_SATISFIED | the exact bounty back to the creator |
+| UNDETERMINED | the exact bounty back to the creator |
 
-| Verdict | When | Consequence |
-|---|---|---|
-| Satisfied | every required fact confirmed by readable sources, with the event by the deadline | bounty to the beneficiary |
-| Not satisfied | every source readable and a required fact not confirmed after the deadline, or the event happened after the deadline | bounty to the creator |
-| Undetermined | a source unreadable, sources contradicting each other, independence not met, the event time unknown, or nobody observed in time | bounty to the creator |
+## Why GenLayer
 
-Inside the window only Satisfied is conclusive; a negative reading keeps observing (up to 4
-times). After the deadline the next observation is conclusive either way.
+Everything except the reading could run on any chain. The reading needs
+live web pages interpreted by something, and anywhere else that something
+is a trusted party. On GenLayer the leader and every validator fetch the
+frozen sources and read them independently, the result stands only if
+their complete stored results match, and the protocol's own appeal and
+finality rules apply. The contract can hold GEN against the outcome
+without trusting any single reader — including whoever runs the website.
 
 ## Lifecycle
 
-```text
+```
 DRAFT ──fund──► FUNDED ──arm──► ARMED ──observe──► OBSERVING ──observe──┐
   │               │               │                    │                │
   └──cancel───────┴──cancel──► CANCELLED              (not conclusive)   ▼
@@ -78,193 +79,99 @@ DRAFT ──fund──► FUNDED ──arm──► ARMED ──observe──►
                                                               └──────► FINALIZED ──settle──► SETTLED
 ```
 
-| Status | Meaning |
-|---|---|
-| Draft | terms recorded, nothing deposited |
-| Funded | exact bounty deposited; creator can still cancel (full refund) |
-| Armed | terms frozen, bounty locked, waiting for the window |
-| Observing | observed, no conclusive result yet |
-| Result accepted | consensus accepted a conclusive result; 10-minute finality delay running |
-| Finalized | result final; anyone may settle |
-| Settled | bounty paid; closed |
-| Cancelled | withdrawn before ARM |
+- **create** (anyone, becomes the creator): condition text, verification
+  policy, observation window, deadline, bounty terms, beneficiary.
+- **fund** (creator): the transaction value must equal the bounty terms.
+  A deposit that cannot fund — wrong amount, wrong sender, wrong state — is
+  sent straight back in the same transaction.
+- **arm** (creator, before the window opens): the terms freeze and the
+  bounty locks. Nothing can change or be withdrawn afterwards.
+- **observe** (anyone, inside the window or up to 7 days after the
+  deadline): one consensus observation. Inside the window only SATISFIED is
+  conclusive; after the deadline every observation is.
+- **finalize** (anyone): 600 s after a conclusive result, or as
+  UNDETERMINED / NOT_OBSERVED if nobody observed in time.
+- **settle** (anyone, once): pays the destination the verdict fixes.
 
-## GenLayer consensus functions
+The prompt's conceptual PROPOSED stage is GenLayer's own leader phase
+inside the observe transaction, not a contract status — see
+[CONTRACT.md](docs/CONTRACT.md#lifecycle).
 
-| Function | Kind | What runs under consensus |
-|---|---|---|
-| `observe_condition` | nondeterministic (`gl.vm.run_nondet_unsafe`) | each node fetches the frozen sources (`gl.nondet.web.get`), asks a model for per-fact findings (`gl.nondet.exec_prompt`), derives the result in code; validators compare every stored field against their own |
-| every other write | deterministic | terms, ledger, lifecycle, finality gate, settlement |
+## Time
 
-## Contract
+The contract's clock is the transaction's datetime
+(`datetime.now(timezone.utc)` inside GenVM). No method takes "now" as an
+argument and no method advances a clock. Every node executing a
+transaction reads the same instant, so the window, the deadline, the
+7-day grace and the finality delay are decided identically everywhere.
 
-| | |
-|---|---|
-| Network | GenLayer StudioNet |
-| Chain ID | 61999 |
-| RPC | `https://studio.genlayer.com/api` |
-| Explorer | https://explorer-studio.genlayer.com |
-| Address | [`0x9e4Ae09e8584a79bdbFACf7CB2Dad05a51bACd9d`](https://explorer-studio.genlayer.com/address/0x9e4Ae09e8584a79bdbFACf7CB2Dad05a51bACd9d) |
-| Source | [`contracts/statelock.py`](contracts/statelock.py), runner `py-genlayer:1jb45aa8…`, sha256 `a78ac0db…0292093` |
+## Evidence
 
-### Write methods
+- Up to four `https://` sources, frozen at creation, each with a kind and
+  a label the creator declares (and the prompt marks as claims).
+- Up to six required facts, each with an optional expected value.
+- Optional independence: every fact confirmed by sources on two or more
+  different hosts, checked in code.
+- Only those URLs are fetched. A source is readable with HTTP 2xx and a
+  body of 1 byte to 1 MB; JSON is compacted, HTML stripped, control
+  characters and the fence markers `<<<` `>>>` removed, 6000 characters
+  per source.
+- Evidence is untrusted data inside numbered fences; text in a page that
+  addresses the reader has no authority.
 
-| Method | Who | Payable | Notes |
-|---|---|---|---|
-| `create_condition(condition_text, policy_json, observation_start, deadline, bounty_terms, beneficiary)` | anyone | no | returns `SL-000001`, … |
-| `fund_condition(condition_id)` | creator | **yes** | value must equal the bounty terms; any unusable deposit is returned |
-| `cancel_condition(condition_id)` | creator | no | Draft or Funded only; refunds |
-| `arm_condition(condition_id)` | creator | no | Funded, before the window |
-| `observe_condition(condition_id)` | anyone | no | the consensus observation |
-| `finalize_condition(condition_id)` | anyone | no | 600 s after acceptance, or expiry |
-| `settle_condition(condition_id)` | anyone | no | Finalized, once |
+## Consensus
 
-### Read methods
+`observe_condition` is one `gl.vm.run_nondet_unsafe(leader_fn,
+validator_fn)` round. The validator repeats the fetch, the model call and
+the derivation, then agrees only if its **complete stored result** equals
+the leader's: verdict, reason, temporal result, conclusiveness, every
+fact's stored status, value and independence, and which sources were
+readable.
 
-`get_protocol_info`, `get_condition`, `get_policy`, `get_observation`, `get_final_result`,
-`list_conditions`, `list_conditions_by_creator`, `get_returned_deposits`.
+Consensus is required on what has a consequence, and only that. A fact
+the model calls "contradicted" and one it calls "not found" are stored as
+one status, `NOT_CONFIRMED`, because they lead to the same result; the
+stored value of a confirmed fact is the policy's expected value, not the
+model's wording; independence is compared only when the policy requires
+it. Malformed model output raises `[LLM_ERROR]`, so the round rotates
+instead of recording it.
 
-### Consensus guarantees
+## Settlement
 
-- The model returns findings only; no amount, recipient, deadline, source or verdict.
-- Validators independently fetch, read and derive, then require their complete stored result
-  to equal the leader's.
-- Distinctions without consequence (contradicted vs. not found; independence when not required)
-  are not stored, so honest validators do not split on them.
-- A malformed model answer rotates the leader instead of being recorded.
+From FINALIZED only: validate the verdict, refuse a second settlement,
+read the ledger, resolve the destination from the constant consequence
+table, zero the ledger, record the settlement, mark SETTLED, and only then
+emit the transfer through an empty `@gl.evm.contract_interface`. The
+finality guarantee is the contract's own gate — on the pinned runner
+`emit_transfer` takes no stage argument.
 
-Full reference: [`docs/CONTRACT.md`](docs/CONTRACT.md).
-
-## Verified end-to-end
-
-All on StudioNet, all re-checkable by hash. Details: [`docs/E2E.md`](docs/E2E.md).
-
-```text
-Integration suite, run 3 (tests/integration)            18 passed in 46 min 19 s
-  SL-000001  observe inside window   SATISFIED        REQUIRED_FACTS_CONFIRMED  S1,S2 readable
-  SL-000002  observe after deadline  NOT_SATISFIED    REQUIRED_FACT_NOT_CONFIRMED
-  SL-000003  observe after deadline  UNDETERMINED     SOURCES_UNAVAILABLE (HTTP 404)
-  refused    past start, cancel after ARM, early observe, settle while accepted,
-             finalize before the delay, second settlement
-  returned   1-atto-short deposit and third-party deposit, sender balances unchanged
-  balances   contract 30,000,000,000,000,000 -> 0
-             beneficiary +10,000,000,000,000,000   creator +20,000,000,000,000,000
-
-Through the app, deployment of record 0x9e4Ae09e…Acd9d
-  connect (EIP-6963) -> wrong-network notice -> switch -> create -> fund -> ARM
-  observe 22:38 UTC  SATISFIED -> finalize 22:48 UTC -> settle
-  beneficiary 0 -> 10,000,000,000,000,000   contract 10,000,000,000,000,000 -> 0
-  every transaction FINALIZED, validator votes agree x3
-```
-
-Tests that ran and passed on the final code:
-
-| Suite | Result |
-|---|---|
-| `genvm-lint check contracts/statelock.py --json` | ok (lint 3/3, schema valid; I200 note on a newer runner, see ARCHITECTURE) |
-| `pytest tests/direct` (GenLayer direct mode) | 86 passed |
-| Contract mutation sweep (each guard broken in a scratch copy) | 25/25 caught |
-| `SKIP_INTEGRATION=0 pytest tests/integration` (live StudioNet) | 18 passed |
-| `npm test` in `app/` | 27 passed |
-| Frontend mutation sweep | 12/12 caught |
-| `npm run build` in `app/` | succeeds |
-
-Two StudioNet platform behaviours were found live and are documented with transaction hashes:
-an appeal of an accepted transaction erases the appealed contract, and a refused payable
-transaction's value is still credited to the contract (which is why deposits are returned, not
-refused).
-
-## Architecture
-
-```text
-browser: Next.js app ── reads ──► genlayer-js ──► StudioNet RPC ──► Statelock contract
-                     └─ writes ─► injected wallet (EIP-6963) ─────────┘      │
-                                                                             └─► allowed https sources
-```
-
-The app is presentation only: every state shown is read from the contract; every write is
-signed by the user's wallet. See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) (deterministic
-and nondeterministic execution, web observation, LLM adjudication, Equivalence Principle,
-Optimistic Democracy, finality, settlement) and [`docs/SECURITY.md`](docs/SECURITY.md).
-
-## Tech stack
-
-| Layer | Technology |
-|---|---|
-| Contract | GenLayer Intelligent Contract (Python), runner `py-genlayer:1jb45aa8…` |
-| Contract tooling | genvm-linter 0.11.0, genlayer-test 0.29.2 (direct mode), genlayer-py 0.16.3 |
-| Frontend | Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4, shadcn/ui, Lucide |
-| Wallet and chain | wagmi 3 + viem 2 (EIP-6963), genlayer-js 1.1.8 |
-| Data and validation | TanStack Query 5, Zod 4 |
-| Frontend tests | Vitest |
-
-## Repository
-
-```text
-contracts/statelock.py         the Intelligent Contract
-tests/direct/                  direct-mode tests (conditions, policy, funding, state machine,
-                               observation, settlement, security)
-tests/integration/             live StudioNet tests (create, fund/arm, observation, consensus,
-                               undetermined, finalization)
-scripts/deploy.py              deploy the committed source, byte-verify, print frontend env
-scripts/inspect.py             read code, schema and records back from the chain
-app/                           the Next.js frontend
-docs/ARCHITECTURE.md  CONTRACT.md  SECURITY.md  E2E.md
-docs/deployment.json  live-e2e.json  app-e2e.json  evidence/
-package.json                   root scripts: setup, dev, build, test, typecheck, lint (run app/)
-```
-
-## Getting started
-
-### Prerequisites
-
-Python 3.12, Node.js 22, git. For live tests and deployment, network access to StudioNet (the
-faucet funds throwaway accounts; no key is needed). For the app, a browser wallet.
-
-### Contract: lint and test
+## Quick start
 
 ```bash
 pip install -r requirements.txt
+
+genvm-lint check contracts/statelock.py --json        # lint
+pytest tests/direct -v                                # 86 tests, offline
+SKIP_INTEGRATION=0 pytest tests/integration -v -s     # live StudioNet, no keys needed
+python scripts/deploy.py                              # deploy HEAD, byte-verify, print app env
+python scripts/inspect.py <address> --condition SL-000001   # read it all back
 ```
 
-```bash
-genvm-lint check contracts/statelock.py --json
-```
+The live suite creates throwaway accounts, funds them from the StudioNet
+faucet, deploys the contract (plus a disposable probe for the appeal test)
+and drives three commitments whose outcomes are known in advance. It waits
+out real windows and the finality delay, so it takes about 45 minutes.
+`gltest tests/integration -v -s` collects the same tests. Set
+`STATELOCK_CONTRACT=<address>` to reuse a deployment (see `.env.example`).
 
-```bash
-pytest tests/direct -v
-```
-
-```bash
-SKIP_INTEGRATION=0 pytest tests/integration -v -s
-```
-
-The live suite takes about 45 minutes (real observation windows and the 10-minute finality
-delay) and writes `docs/live-e2e.json`. `SKIP_INTEGRATION=0 gltest tests/integration -v -s`
-collects and runs the same 18 tests (the harness binds to StudioNet itself); the recorded live
-runs were made with `pytest`.
-
-### Deploy
-
-```bash
-python scripts/deploy.py
-```
-
-Deploys `contracts/statelock.py` as committed at `HEAD` from a throwaway faucet-funded account,
-waits for FINALIZED, requires the on-chain code to be byte-identical, writes
-`docs/deployment.json`, and prints the three frontend variables. Inspect any deployment:
-
-```bash
-python scripts/inspect.py 0x9e4Ae09e8584a79bdbFACf7CB2Dad05a51bACd9d --condition SL-000001
-```
-
-### Frontend
+## The app
 
 ```bash
 cd app && npm ci
+cp .env.example .env.local        # contract address below
+npm run dev                       # http://localhost:3000
+npm test                          # 27 tests
 ```
-
-Create `app/.env.local` (public values only; see `app/.env.example`):
 
 ```text
 NEXT_PUBLIC_GENLAYER_CHAIN_ID=61999
@@ -272,45 +179,135 @@ NEXT_PUBLIC_GENLAYER_RPC_URL=https://studio.genlayer.com/api
 NEXT_PUBLIC_STATELOCK_CONTRACT_ADDRESS=0x9e4Ae09e8584a79bdbFACf7CB2Dad05a51bACd9d
 ```
 
-```bash
-npm run dev
+Next.js 16, React 19, TypeScript, Tailwind, shadcn/ui, wagmi + viem
+(EIP-6963 wallet discovery), TanStack Query, Zod, genlayer-js 1.1.8.
+Landing, dashboard, a five-step creation flow, and a commitment page that
+separates ON-CHAIN state from EXTERNAL EVIDENCE and offers every verb to
+the party the contract allows. Writes are signed by the user's injected
+wallet; a write shows as done only when the contract's own view reflects
+it, and GenLayer finality is tracked separately. The app refuses to start
+on any chain but 61999 and disables every transaction unless the wallet is
+on StudioNet and the configured address exposes STATELOCK's exact schema.
+
+## Proven live on StudioNet
+
+- Contract: [`0x9e4Ae09e8584a79bdbFACf7CB2Dad05a51bACd9d`](https://explorer-studio.genlayer.com/address/0x9e4Ae09e8584a79bdbFACf7CB2Dad05a51bACd9d)
+- Deploy tx: `0x5055fad5ae2aa97d9299d8c64c28dd0c44c9e72a3dda8759af67b7b9ac158ca1` (FINALIZED)
+- Source: `contracts/statelock.py`, 56 944 bytes, sha256
+  `a78ac0dbf7649db97bfb16204fb2773e5797781f4132c546bdd307aa90292093`
+- **Repository = deployment.** `python scripts/inspect.py
+  0x9e4Ae09e8584a79bdbFACf7CB2Dad05a51bACd9d` compares the chain's stored
+  code with git: MATCH
+- Runner: `py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6`
+- Every transaction, hash and balance: [docs/E2E.md](docs/E2E.md)
+
+### The integration suite — 18 passed in 46m19s
+
+| Commitment | Observed | Verdict | Why |
+|---|---|---|---|
+| genlayer-js releases 1.1.8 (GitHub release record + npm) | inside the window | **SATISFIED** | both facts confirmed, both sources readable |
+| genlayer-js's latest stable release is 99.0.0 (GitHub latest + npm dist-tags) | after the deadline | **NOT_SATISFIED** | the required fact not confirmed, every source readable |
+| genlayer-js releases 99.0.0 (a release page that returns 404) | after the deadline | **UNDETERMINED** | no source readable |
+
+Refused on-chain, each with the contract's own sentence: a past start,
+funding with no value, cancel after ARM, observing before the window,
+settling while only ACCEPTED, finalizing before the delay, settling twice.
+Returned in the same transaction: a deposit 1 atto short and a deposit
+from a third party — both senders' balances unchanged. Before settlement
+the contract held exactly the three bounties; after it, zero. The
+beneficiary gained 0.01 GEN and the creator 0.02 GEN.
+
+### Through the app — SL-000001 on the deployment of record
+
+Connect (EIP-6963) → wrong-network notice → switch → create in five steps
+→ fund → ARM → observe at 22:38 UTC: **SATISFIED** → finalize at 22:48 UTC
+→ settle. The beneficiary went from 0 to exactly 0.01 GEN, the contract
+from 0.01 GEN to 0, and every transaction ended FINALIZED with validator
+votes agree ×3. The browser used had no wallet extension, so a throwaway
+EIP-6963 test wallet was injected as harness; the app's own code path did
+the rest ([app-e2e.json](docs/app-e2e.json)).
+
+### What the live runs taught (14 Sep)
+
+- **A refused payable transaction keeps its value.** The first runs sent a
+  deposit 1 atto short and one from a third party; the contract refused
+  both, and StudioNet still credited both values to the contract
+  (`value_credited: true` on an ERROR execution). With no admin, that GEN
+  was stranded. `fund_condition` now never refuses a deposit that carries
+  value: it returns it and records why (`get_returned_deposits`).
+- **An appeal on StudioNet erases the appealed contract.** Run 1 filed a
+  protocol appeal on the lifecycle contract's accepted observation; the
+  rounds went Accepted → Validator Appeal Successful → a re-execution
+  failing `invalid_contract absent_runner_comment`, and the contract's code
+  was gone. Reproduced on a 16-line counter
+  ([docs/evidence/](docs/evidence)). The suite now appeals only a
+  disposable probe, and checks the lifecycle contract is untouched.
+- **The app's first live run found four UI faults** — a transaction dock
+  covering the ARM button, a tracker that never reached Finalized, a
+  stale time check disabling Create without a reason, and overflow at
+  phone width. All fixed in the commit that records the run.
+
+## Documentation
+
+| | |
+|---|---|
+| [ARCHITECTURE.md](docs/ARCHITECTURE.md) | deterministic and nondeterministic execution, web observation, LLM adjudication, Equivalence Principle, Optimistic Democracy, finality, settlement, the frontend, and the research record |
+| [CONTRACT.md](docs/CONTRACT.md) | storage, every method, lifecycle, policy rules, the derivation table, funding and settlement, views |
+| [SECURITY.md](docs/SECURITY.md) | invariants, the build prompt's security matrix mapped to its tests, prompt injection, malicious sources, web failures, replay, wallet and network safety, the platform issues |
+| [E2E.md](docs/E2E.md) | the live integration run and the in-app run, every hash and balance |
+| [deployment.json](docs/deployment.json) | the deployment of record and its verification |
+
+## Testing
+
+```
+genvm-lint check              passes — 15 methods (8 view, 7 write)
+pytest tests/direct           86 passed
+pytest tests/integration      18 passed on StudioNet, real panel, real windows (46m19s)
+contract mutation sweep       25/25 guards broken on purpose, all caught
+app: npm test                 27 passed
+app mutation sweep            12/12 guards broken on purpose, all caught
+app: npm run build            succeeds
 ```
 
-```bash
-npm test
-```
+The direct suite runs on GenLayer's official direct mode: web responses
+and model answers are mocked with its own mechanisms, transaction time is
+moved only with `direct_vm.warp()`, and — by replaying the contract's
+captured validator closure with `direct_vm.run_validator()` — validators
+are shown to fetch and read for themselves and to refuse a leader whose
+result their own reading does not support. Every adversarial test asserts
+that **money did not move**, not merely that a status changed. The app
+suite drives the real genlayer-js client through a mock EIP-1193 wallet
+to prove writes are signed by the wallet and carry exactly the right
+value, and covers the wrong-network and wrong-contract rows of the
+security matrix.
 
-### Wallet and network
+## Known limitations
 
-Add GenLayer StudioNet to your wallet (chain ID 61999, RPC `https://studio.genlayer.com/api`,
-currency GEN) — the app offers a **Switch to StudioNet** button when your wallet is elsewhere.
-Test GEN comes from the StudioNet faucet. The app refuses to send anything while the wallet is
-on another chain or the configured address is not a verified STATELOCK deployment.
-
-### E2E flow
-
-Connect → Create (five steps) → Fund → ARM → wait for the window → Observe → wait 10 minutes →
-Finalize → Settle → check the beneficiary's balance and that nothing more can be done. Every
-step, hash and balance of the recorded run is in [`docs/E2E.md`](docs/E2E.md).
-
-## Security
-
-- Terms are hashed and re-checked on every transition; nothing changes after ARM.
-- The bounty cannot leave before FINALIZED; settlement zeroes the ledger before transferring, once.
-- Evidence is untrusted: frozen URLs only, fenced and bounded text, no instruction authority.
-- Uncertainty never forces a result: partial outages, conflicts and unknown dates are Undetermined.
-- No owner, admin, pause, upgrade, backend or server key.
-
-## Design notes
-
-- The finality delay (600 s) is twenty times StudioNet's protocol window, because contract code
-  cannot read another transaction's finality.
-- A condition must be armed before its window opens, so the outcome is unobserved when the
-  terms lock.
-- A conclusive result stores only what has a consequence, so validators agree on consequences
-  rather than on wording.
-
-## Disclaimer
-
-STATELOCK runs on GenLayer StudioNet, a test network. GEN there has no monetary value. The
-contract has not been audited.
+- **The creator chooses the sources.** A creator who picks a page they
+  control can shade the reading. The policy is frozen and visible before
+  ARM, source kinds and labels are marked as the creator's claims, and
+  independence can be required — but judging a source's credibility is the
+  beneficiary's job before accepting the terms.
+- **Sources are read as served, not rendered.** `gl.nondet.web.get`
+  fetches the raw response: pages behind logins, personalised pages and
+  content built by JavaScript are unreadable, and only the first 6000
+  extracted characters of each source are read. Stable, public, structured
+  endpoints (release APIs, registries) work best.
+- **Dates are coarse where sources are.** A date without a time covers the
+  whole UTC day; a date-time without a timezone covers ±14 hours. An event
+  that close to the deadline is UNDETERMINED rather than guessed.
+- **The finality delay is a fixed 600 s.** Contract code cannot read
+  another transaction's protocol status, so the delay stands in for it —
+  twenty times StudioNet's 30-second window. A network with a much longer
+  appeal window would need a longer delay.
+- **Nobody is paid to observe.** Observation and settlement are
+  permissionless but cost the caller a transaction; the beneficiary (or
+  the creator, after the deadline) is expected to trigger them. If nobody
+  does, the condition expires to UNDETERMINED and refunds the creator.
+- **StudioNet platform behaviour.** An appeal currently erases the appealed
+  contract, and value sent to a method that is not payable cannot be
+  returned by any contract. The app attaches value only to `fund_condition`.
+- **Panel capture is out of scope.** A compromised validator majority can
+  agree on a false reading; that is GenLayer's trust model.
+- **Test network, unaudited.** StudioNet GEN has no value, and the contract
+  has not been audited.
