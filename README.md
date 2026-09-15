@@ -211,6 +211,7 @@ scripts/inspect.py             read code, schema and records back from the chain
 app/                           the Next.js frontend
 docs/ARCHITECTURE.md  CONTRACT.md  SECURITY.md  E2E.md
 docs/deployment.json  live-e2e.json  app-e2e.json  evidence/
+package.json                   root scripts: setup, dev, build, test, typecheck, lint (run app/)
 ```
 
 ## Getting started

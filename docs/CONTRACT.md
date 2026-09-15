@@ -51,6 +51,17 @@ method advances a clock. Every node executing a transaction reads the same value
 
 ## Lifecycle
 
+The build prompt's conceptual lifecycle is DRAFT → FUNDED → ARMED → OBSERVABLE / OBSERVING →
+PROPOSED → ACCEPTED → FINALIZED → SETTLED. The labels are adapted to what the chain exposes:
+
+| Prompt stage | Here |
+|---|---|
+| DRAFT, FUNDED, ARMED | contract statuses of the same names |
+| OBSERVABLE / OBSERVING | ARMED with the window open (the contract's `get_condition` exposes `observation_start`); OBSERVING after a non-conclusive observation |
+| PROPOSED | not a contract status: it is GenLayer's own leader phase *inside* the `observe_condition` transaction (protocol status PROPOSING → COMMITTING → REVEALING → ACCEPTED). The app shows it on the transaction ("Leader proposing"); inventing a contract status for it would claim a state the contract cannot observe |
+| ACCEPTED | contract status ACCEPTED: a conclusive result accepted by consensus, finality delay running |
+| FINALIZED, SETTLED | contract statuses of the same names; CANCELLED is the pre-ARM exit |
+
 ```
                        cancel (creator)                      cancel (creator, refund)
                  ┌────────────────────────┐          ┌──────────────────────────────┐

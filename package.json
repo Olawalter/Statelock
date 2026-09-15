@@ -1,0 +1,13 @@
+{
+  "name": "statelock",
+  "private": true,
+  "description": "STATELOCK - conditional reality verification on GenLayer. The contract lives in contracts/, the web app in app/.",
+  "scripts": {
+    "setup": "npm --prefix app ci",
+    "dev": "npm --prefix app run dev",
+    "build": "npm --prefix app run build",
+    "test": "npm --prefix app test",
+    "typecheck": "npm --prefix app run typecheck",
+    "lint": "npm --prefix app run lint"
+  }
+}
